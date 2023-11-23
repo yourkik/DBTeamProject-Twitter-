@@ -115,7 +115,7 @@ public class SimpleTwitterApp extends JFrame {
             JOptionPane.showMessageDialog(this, "Error creating user.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-
+//여기부터 문제 있어요!!!!! (db에 유저네임 있어도 follow가 안됩니다..)
     private void followUser(String followingUsername) {
         try {
             // Get the UserID for the current user
