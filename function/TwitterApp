@@ -1,0 +1,276 @@
+import java.sql.*;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+
+public class SimpleTwitterApp extends JFrame {
+    private Connection connection;
+    private JTextField useridField, usernameField, useremailField, passwordField, followField, tweetField;
+    private JTextArea feedArea;
+
+    public SimpleTwitterApp() {
+        // Initialize GUI components
+        useridField = new JTextField(10);
+        usernameField = new JTextField(10);
+        useremailField = new JTextField(20);
+        passwordField = new JPasswordField(10);
+        followField = new JTextField(10);
+        tweetField = new JTextField(30);
+        feedArea = new JTextArea(10, 30);
+        JButton createUserButton = new JButton("Create User");
+        JButton followButton = new JButton("Follow");
+        JButton postButton = new JButton("Post");
+
+        // Connect to the database
+        connectToDatabase();
+
+        // Set up the GUI layout
+        setLayout(new BorderLayout());
+        JPanel userPanel = new JPanel();
+        userPanel.add(new JLabel("UserID:"));  // Corrected the label text
+        userPanel.add(useridField);  // Corrected the text field variable
+        userPanel.add(new JLabel("Username:"));
+        userPanel.add(usernameField);
+        userPanel.add(new JLabel("User Email:"));  // Corrected the label text
+        userPanel.add(useremailField);  // Corrected the text field variable
+        userPanel.add(new JLabel("Password:"));
+        userPanel.add(passwordField);
+        userPanel.add(createUserButton);
+
+        JPanel followPanel = new JPanel();
+        followPanel.add(new JLabel("Follow User:"));
+        followPanel.add(followField);
+        followPanel.add(followButton);
+
+        JPanel tweetPanel = new JPanel();
+        tweetPanel.add(new JLabel("Tweet:"));
+        tweetPanel.add(tweetField);
+        tweetPanel.add(postButton);
+        
+        JPanel mainPanel = new JPanel();  // New panel to hold the tweetPanel and feedArea
+        mainPanel.setLayout(new BorderLayout());
+        mainPanel.add(tweetPanel, BorderLayout.NORTH);
+        mainPanel.add(new JScrollPane(feedArea), BorderLayout.SOUTH);
+        
+        add(userPanel, BorderLayout.NORTH);
+        add(followPanel, BorderLayout.CENTER);
+        add(tweetPanel, BorderLayout.SOUTH);
+        add(new JScrollPane(feedArea), BorderLayout.SOUTH);
+
+        // Define actions for buttons and other components
+        createUserButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String userid = useridField.getText();
+                String username = usernameField.getText();
+                String useremail = useremailField.getText();
+                String password = passwordField.getText();
+                createUser(userid, username, useremail, password);  // Corrected the parameters
+            }
+        });
+
+        followButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String followingUsername = followField.getText();
+                followUser(followingUsername);
+            }
+        });
+
+        postButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String tweetContent = tweetField.getText();
+                postTweet(tweetContent);
+            }
+        });
+    }
+
+
+    private void connectToDatabase() {
+        try {
+            // Load JDBC driver and establish a connection
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/twitter?serverTimezone=UTC&useSSL=false", "root", "1234");
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error connecting to the database.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void createUser(String userID, String name, String email, String password) {
+        try {
+            // Insert new user into the User table
+            String query = "INSERT INTO User (UserID, Name, Email, Password) VALUES (?, ?, ?, ?)";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                preparedStatement.setString(1, userID);
+                preparedStatement.setString(2, name);
+                preparedStatement.setString(3, email);
+                preparedStatement.setString(4, password);
+                preparedStatement.executeUpdate();
+            }
+            JOptionPane.showMessageDialog(this, "User created successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error creating user.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void followUser(String followingUsername) {
+        try {
+            // Get the UserID for the current user
+            String currentUser = usernameField.getText();
+            String queryUserId = "SELECT UserID FROM User WHERE UserID = ?";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(queryUserId)) {
+                preparedStatement.setString(1, currentUser);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (!resultSet.next()) {
+                        JOptionPane.showMessageDialog(this, "Current user not found.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                }
+            }
+
+            // Get the UserID for the user to be followed
+            String queryFollowingId = "SELECT UserID FROM User WHERE UserID = ?";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(queryFollowingId)) {
+                preparedStatement.setString(1, followingUsername);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (!resultSet.next()) {
+                        JOptionPane.showMessageDialog(this, "User to follow not found.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                }
+            }
+
+            // Check if the user is already following the target user
+            if (!isFollowing(currentUser, followingUsername)) {
+                // Insert the follow relationship into the Follower table
+                String query = "INSERT INTO Follower (UserID, followingID) VALUES (?, ?)";
+                try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                    preparedStatement.setString(1, currentUser);
+                    preparedStatement.setString(2, followingUsername);
+                    preparedStatement.executeUpdate();
+                }
+                JOptionPane.showMessageDialog(this, "You are now following " + followingUsername, "Success", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "You are already following " + followingUsername, "Info", JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error following user.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private boolean isFollowing(String followerId, String followingId) throws SQLException {
+        // Check if the user is already following the target user
+        String query = "SELECT * FROM Follower WHERE UserID = ? AND followingID = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            preparedStatement.setString(1, followerId);
+            preparedStatement.setString(2, followingId);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                return resultSet.next();
+            }
+        }
+    }
+
+    private void postTweet(String tweetContent) {
+        try {
+            // Get the UserID for the current user
+            String currentUser = usernameField.getText();
+            String queryUserId = "SELECT UserID FROM User WHERE UserID = ?";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(queryUserId)) {
+                preparedStatement.setString(1, currentUser);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (!resultSet.next()) {
+                        JOptionPane.showMessageDialog(this, "Current user not found.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                }
+            }
+
+            // Insert the tweet into the Tweet table
+            String tweetId = generateTweetId();
+            String timestamp = new java.text.SimpleDateFormat("yyyy.MM.dd.HH:mm").format(new java.util.Date());
+            String query = "INSERT INTO Tweet (TweetID, WriterID, Content, Timestamp) VALUES (?, ?, ?, ?)";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                preparedStatement.setString(1, tweetId);
+                preparedStatement.setString(2, currentUser);
+                preparedStatement.setString(3, tweetContent);
+                preparedStatement.setString(4, timestamp);
+                preparedStatement.executeUpdate();
+            }
+
+            // Update the user's Timeline
+            query = "INSERT INTO Timeline (UserID, timestamp, TweetID) VALUES (?, ?, ?)";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                preparedStatement.setString(1, currentUser);
+                preparedStatement.setString(2, timestamp);
+                preparedStatement.setString(3, tweetId);
+                preparedStatement.executeUpdate();
+            }
+
+            JOptionPane.showMessageDialog(this, "Tweet posted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+            // Refresh the feed area
+            displayUserFeed(currentUser);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error posting tweet.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private String generateTweetId() {
+        // This method can be improved based on your specific requirements for generating Tweet IDs
+        return String.valueOf(System.currentTimeMillis());
+    }
+
+    private void displayUserFeed(String username) {
+        try {
+            // Get the UserID for the current user
+            String queryUserId = "SELECT UserID FROM User WHERE UserID = ?";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(queryUserId)) {
+                preparedStatement.setString(1, username);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (!resultSet.next()) {
+                        JOptionPane.showMessageDialog(this, "Current user not found.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                }
+            }
+
+            // Display tweets from the user and the users they follow
+            String query = "SELECT t.Content, t.Timestamp FROM Tweet t " +
+                           "JOIN Timeline tl ON t.TweetID = tl.TweetID " +
+                           "WHERE tl.UserID = ? OR tl.UserID IN (SELECT followingID FROM Follower WHERE UserID = ?)";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                preparedStatement.setString(1, username);
+                preparedStatement.setString(2, username);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    StringBuilder feed = new StringBuilder();
+                    while (resultSet.next()) {
+                        String content = resultSet.getString("Content");
+                        String timestamp = resultSet.getString("Timestamp");
+                        feed.append("[").append(timestamp).append("] ").append(content).append("\n");
+                    }
+                    feedArea.setText(feed.toString());
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error displaying feed.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            SimpleTwitterApp app = new SimpleTwitterApp();
+            app.setSize(500, 400);
+            app.setTitle("Simple Twitter");
+            app.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            app.setVisible(true);
+        });
+    }
+}
+
+           
