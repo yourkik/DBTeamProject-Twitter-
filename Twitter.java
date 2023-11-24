@@ -115,6 +115,23 @@ public class Twitter {
 		        System.err.println("게시중 오류가 발생하였습니다.");
 		}
 	}
+
+	public static void Timeline(String userID) {
+	    String selectTimelineQuery = "SELECT Timestamp, TweetID FROM Timeline WHERE UserID = ? ORDER BY Timestamp DESC";
+	    try {
+	        PreparedStatement preparedStatement = con.prepareStatement(selectTimelineQuery);
+	        preparedStatement.setString(1, userID);
+	        ResultSet rs = preparedStatement.executeQuery();
+	        while (rs.next()) {
+	            String timestamp = rs.getString("Timestamp");
+	            String tweetID = rs.getString("TweetID");
+	            System.out.println("Timestamp: " + timestamp + ", TweetID: " + tweetID);
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        System.err.println("불러오기 오류.");
+	    }
+	}
 	
 	public static void Follow(String userID, String followID) {									  // 유저1이 유저2를 팔로우하는 상황 가정
 		String insertFollowingQuery = "INSERT INTO Following (UserID, FollowerID) VALUES (?, ?)"; // 유저1의 팔로잉 목록에 유저2를 업데이트
