@@ -80,6 +80,24 @@ public class Twitter {
 			System.out.println("현재 비밀번호가 맞지 않습니다 다시 확인해주세요");
 		}
 	}
+
+	public static void tweet(String userID, String content) {
+    		String insertTweetQuery = "INSERT INTO Tweet (TweetID, WriterID, Content, Timestamp) VALUES (?, ?, ?, ?)";
+    		try {
+    		  	PreparedStatement preparedStatement = con.prepareStatement(insertTweetQuery);
+			String tweetID = UUID.randomUUID().toString(); // Generate a unique tweetID
+       			String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date()); // Get the current timestamp
+       	 		preparedStatement.setString(1, tweetID);
+        		preparedStatement.setString(2, userID);
+        		preparedStatement.setString(3, content);
+        		preparedStatement.setString(4, timestamp);
+        		preparedStatement.executeUpdate();
+        		System.out.println("게시완료.");
+    		} catch (SQLException e) {
+        		e.printStackTrace();
+        		System.err.println("게시중 오류가 발생하였습니다.");
+    		}
+	}
 	
 	public static void Follow(String userID, String followID) {									  // 유저1이 유저2를 팔로우하는 상황 가정
 		String insertFollowingQuery = "INSERT INTO Following (UserID, FollowerID) VALUES (?, ?)"; // 유저1의 팔로잉 목록에 유저2를 업데이트
