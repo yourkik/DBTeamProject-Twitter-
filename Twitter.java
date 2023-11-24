@@ -11,9 +11,26 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSetMetaData;
 import java.sql.DatabaseMetaData;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 public class Twitter {
 	private static Connection con;
 
+	public static void addTimeLine(String userID, String timeStamp) {
+		String insertUserQuery = "INSERT INTO Timeline (UserID, timestamp, tweetID) VALUES (?, ?, null)";
+		try {
+			PreparedStatement preparedStatement = con.prepareStatement(insertUserQuery);
+			preparedStatement.setString(1, userID);
+			preparedStatement.setString(2, timeStamp);
+			preparedStatement.executeUpdate();
+			System.out.println(userID + "님의 timeline이 생성되었습니다.");//확인용 실제 사용에서는 문장이 출력되지 않아도 됨
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.err.println(userID+"님의 timeline 생성에서 오류 발생");
+		}
+	}
+	
 	public static void signUp(String userID, String name, String email, String password) {
 		String insertUserQuery = "INSERT INTO User (UserID, Name, Email, Password) VALUES (?, ?, ?, ?)";
 		try {
@@ -24,12 +41,19 @@ public class Twitter {
 			preparedStatement.setString(4, password);
 			preparedStatement.executeUpdate();
 			System.out.println("회원가입이 완료되었습니다.");
+			
+			LocalDate now = LocalDate.now();
+			 // 포맷 정의        
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+			String formatedNow = now.format(formatter);
+			addTimeLine(userID,formatedNow);
 		} catch (SQLException e) {
 			e.printStackTrace();
 			System.err.println("회원가입 중 오류가 발생했습니다.");
 		}
 	}
 
+	
 	public static Boolean login(String inputUserID, String inputPassword) {
 		String selectUserQuery = "SELECT UserID, Password, name FROM User WHERE UserID=?";
 		try {
