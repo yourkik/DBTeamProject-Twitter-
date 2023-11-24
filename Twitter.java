@@ -80,7 +80,70 @@ public class Twitter {
 			System.out.println("현재 비밀번호가 맞지 않습니다 다시 확인해주세요");
 		}
 	}
+	
+	public static void Follow(String userID, String followID) {									  // 유저1이 유저2를 팔로우하는 상황 가정
+		String insertFollowingQuery = "INSERT INTO Following (UserID, FollowerID) VALUES (?, ?)"; // 유저1의 팔로잉 목록에 유저2를 업데이트
+		String insertFollowerQuery = "INSERT INTO Follower (UserID, FollowingID) VALUES (?, ?)";  // 유저2의 팔로워 목록에 유저1을 업데이트
+		try {
+			PreparedStatement preparedStatement = con.prepareStatement(insertFollowingQuery);
+			preparedStatement.setString(1, userID);
+			preparedStatement.setString(2, followID);
+			PreparedStatement preparedStatement2 = con.prepareStatement(insertFollowerQuery);
+			preparedStatement2.setString(1, followID);
+			preparedStatement2.setString(2, userID);
+			preparedStatement.executeUpdate();
+			preparedStatement2.executeUpdate();
+			System.out.println(userID + "(이)가 " + followID +"(을)를 팔로우했습니다.");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.err.println("팔로우에 실패했습니다.");
+		}
+	}
+	
+	public static void FollowingList(String UserID) { // 유저의 팔로잉 목록 확인
+		String selectFollowingQuery = "SELECT FollowerID FROM Following WHERE UserID=?";
+		try {
+			PreparedStatement preparedStatement = con.prepareStatement(selectFollowingQuery);
+			preparedStatement.setString(1, UserID);
+			ResultSet resultSet = preparedStatement.executeQuery();
 
+			if (resultSet.next()) {
+				System.out.println(UserID + "의 팔로잉 목록");
+				do {
+					String FollowerID = resultSet.getString("FollowerID");
+					System.out.println(FollowerID);
+				} while(resultSet.next());
+			} else {
+				System.out.println(UserID + "사용자의 팔로잉 목록이 존재하지 않습니다.");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.err.println("팔로잉 목록 오류가 발생했습니다.");
+		}
+	}
+	
+	public static void FollowerList(String UserID) { // 유저의 팔로워 목록 확인
+		String selectFollowerQuery = "SELECT FollowingID FROM Follower WHERE UserID=?";
+		try {
+			PreparedStatement preparedStatement = con.prepareStatement(selectFollowerQuery);
+			preparedStatement.setString(1, UserID);
+			ResultSet resultSet = preparedStatement.executeQuery();
+
+			if (resultSet.next()) {
+				System.out.println(UserID + "의 팔로워 목록");
+				do {
+					String FollowingID = resultSet.getString("FollowingID");
+					System.out.println(FollowingID);
+				} while(resultSet.next());
+			} else {
+				System.out.println(UserID + "사용자의 팔로워 목록이 존재하지 않습니다.");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.err.println("팔로워 목록 오류가 발생했습니다.");
+		}
+	}
+	
 	public static void main(String[] args) {
 		con = null;
 		try {
@@ -94,7 +157,9 @@ public class Twitter {
 		}
 
 		// SignUP
-		//signUp("202235041", "박건우2", "yourkik@gachon.ac.kr", "12345");
+		signUp("202235041", "박건우2", "yourkik@gachon.ac.kr", "12345");
+		signUp("202235042", "ex3", "ex3@gachon.ac.kr", "12345");
+		signUp("202235043", "ex4", "ex4@gachon.ac.kr", "12345");
 		
 		//login
 		login("202235040","12345");
@@ -103,6 +168,17 @@ public class Twitter {
 		changePassword("202235041","12345","123456");
 		login("202235041","12345");
 		login("202235041","123456");
+		
+		//Follow
+		Follow("202235040","202235041");
+		Follow("202235040","202235042");
+		Follow("202235040","202235043");
+		Follow("202235043","202235041");
+		
+		//FollowingList
+		FollowingList("202235040");
+		//FollowerList
+		FollowerList("202235041");
 		
 		// Selection
 		Statement stmt = null;
