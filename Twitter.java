@@ -98,6 +98,23 @@ public class Twitter {
         		System.err.println("게시중 오류가 발생하였습니다.");
     		}
 	}
+
+	public static void comment(String tweetID, String userID, String content) {
+    		String insertCommentQuery = "INSERT INTO Comment (CommentID, TweetID, WriterID, Content) VALUES (?, ?, ?, ?)";
+    		try {
+        		PreparedStatement preparedStatement = con.prepareStatement(insertCommentQuery);
+        		String commentID = UUID.randomUUID().toString(); // Generate a unique commentID
+		        preparedStatement.setString(1, commentID);
+		        preparedStatement.setString(2, tweetID);
+		        preparedStatement.setString(3, userID);
+		        preparedStatement.setString(4, content);
+		        preparedStatement.executeUpdate();
+		        System.out.println("게시완료.");
+		} catch (SQLException e) {
+		        e.printStackTrace();
+		        System.err.println("게시중 오류가 발생하였습니다.");
+		}
+	}
 	
 	public static void Follow(String userID, String followID) {									  // 유저1이 유저2를 팔로우하는 상황 가정
 		String insertFollowingQuery = "INSERT INTO Following (UserID, FollowerID) VALUES (?, ?)"; // 유저1의 팔로잉 목록에 유저2를 업데이트
