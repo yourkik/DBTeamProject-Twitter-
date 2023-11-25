@@ -15,7 +15,7 @@ CREATE TABLE Writer (
   WriterID varchar(20) PRIMARY KEY,
   Name varchar(50),
   Email varchar(50)
-);
+)DEFAULT CHARACTER SET UTF8;
 
 CREATE TABLE Tweet (
   TweetID varchar(20),
@@ -24,7 +24,7 @@ CREATE TABLE Tweet (
   Timestamp varchar(25),
   PRIMARY KEY (TweetID),
   FOREIGN KEY (WriterID) REFERENCES Writer(WriterID)
-);
+)DEFAULT CHARACTER SET UTF8;
 
 CREATE TABLE Timeline (
   UserID varchar(20),
@@ -41,7 +41,7 @@ CREATE TABLE Follower (
    Primary key (UserID,FollowingID),
    Foreign key (followingID) references User(UserID),
    Foreign key(UserID) references USer(USerID)
-)default character	set UTF8;
+)DEFAULT CHARACTER SET UTF8;
 
 CREATE TABLE Following (
   UserID varchar(20),
@@ -50,13 +50,13 @@ CREATE TABLE Following (
   Primary key (UserID, FollowerID),
   Foreign key (followerID) references User(UserID),
   Foreign Key(UserID) references User(UserID)
-)default character set UTF8;
+)DEFAULT CHARACTER SET UTF8;
 
 CREATE TABLE BlackList (
   BlockingUserID varchar(20),
   BlockedUserID varchar(20),
   Timestamp varchar(25),
-  Primary Key (BlackingUserID, BlockedUserID),
+  Primary Key (BlockingUserID, BlockedUserID),
   Foreign Key (BlockingUserID) references User(UserID),
   Foreign Key (BlockedUserID) references User(UserID)
 )DEFAULT CHARACTER SET UTF8;
