@@ -10,30 +10,15 @@ CREATE TABLE User (
   PRIMARY KEY (UserID)
 ) DEFAULT CHARACTER SET UTF8;
 
-#Tweet하고 writer로 나눈것 하나와 마지막에 그냥 Tweet만 적어 놓으신게 있는데 뭐가 맞는지 모르겠네요
-CREATE TABLE Writer (
-  WriterID varchar(20) PRIMARY KEY,
-  Name varchar(50),
-  Email varchar(50)
-)DEFAULT CHARACTER SET UTF8;
-
 CREATE TABLE Tweet (
   TweetID varchar(20),
   WriterID varchar(20),
   Content varchar(255),
   Timestamp varchar(25),
-  PRIMARY KEY (TweetID)
-  #FOREIGN KEY (WriterID) REFERENCES Writer(WriterID)#이 문장이 Tweet table contraint error 발생 수정 필요
+  PRIMARY KEY (TweetID),
+  FOREIGN KEY (WriterID) REFERENCES User(UserID)#이 문장이 Tweet table contraint error 발생 수정 필요
 )DEFAULT CHARACTER SET UTF8;
 
-#TweetID가 없어도 될 것 같음, Timeline은 여러 TweetID를 저장해야하므로 그냥 TweetID가 UserID를 기억하고 Timeline과 이어지게 하면 될 것 같음
-CREATE TABLE Timeline (
-  UserID varchar(20),
-  timestamp varchar(25),
-  TweetID varchar(20),
-  Primary key (UserID),
-  Foreign key(TweetID) references Tweet(TweetID)
-) DEFAULT CHARACTER SET UTF8;
 
 CREATE TABLE Follower (
    UserID varchar(20),
@@ -53,16 +38,6 @@ CREATE TABLE Following (
   Foreign Key(UserID) references User(UserID)
 )DEFAULT CHARACTER SET UTF8;
 
-#BlackList는 다른 것 완료된 후 구현(함수)
-CREATE TABLE BlackList (
-  BlockingUserID varchar(20),
-  BlockedUserID varchar(20),
-  Timestamp varchar(25),
-  Primary Key (BlockingUserID, BlockedUserID),
-  Foreign Key (BlockingUserID) references User(UserID),
-  Foreign Key (BlockedUserID) references User(UserID)
-)DEFAULT CHARACTER SET UTF8;
-
 CREATE TABLE Comment (
   CommentID varchar(20) PRIMARY KEY,
   TweetID varchar(20),
@@ -73,21 +48,13 @@ CREATE TABLE Comment (
   FOREIGN KEY (UserID) REFERENCES User(UserID)
 )DEFAULT CHARACTER SET UTF8;
 
-
 /*User 추가*/
 insert into User(UserID, Name, email, password) values('202235040', 'ParkGeonwoo','yourkik@gachon.ac.kr', '12345'); 
 select *from User;
 
-/*Timeline*/
-insert into Timeline(UserID, timestamp) values('202235040', '2023.11.21.10:40');
-select *from Timeline;
-
 /*Tweet 추가*/
 insert into Tweet values('0','202235040','Test','2023.11.21');
 select *from Tweet;
-/*update table Timeline add '202235040', */
-update Timeline set TweetID = '0' where Timeline.UserID='202235040';
-select *from Timeline;
 
 select *from following;
 select *from follower;
