@@ -1,4 +1,4 @@
-package myDB;
+package Twiiter;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.sql.ResultSet;
 import java.sql.PreparedStatement;
 import java.sql.ResultSetMetaData;
@@ -14,24 +15,36 @@ import java.sql.DatabaseMetaData;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+
+
 public class Twitter {
 	private static Connection con;
-
-	public static void addTimeLine(String userID, String timeStamp) {
-		String insertUserQuery = "INSERT INTO Timeline (UserID, timestamp, tweetID) VALUES (?, ?, null)";
-		try {
-			PreparedStatement preparedStatement = con.prepareStatement(insertUserQuery);
-			preparedStatement.setString(1, userID);
-			preparedStatement.setString(2, timeStamp);
-			preparedStatement.executeUpdate();
-			System.out.println(userID + "님의 timeline이 생성되었습니다.");//확인용 실제 사용에서는 문장이 출력되지 않아도 됨
-		} catch (SQLException e) {
-			e.printStackTrace();
-			System.err.println(userID+"님의 timeline 생성에서 오류 발생");
-		}
+	
+	//중복된 ID인지 확인하는 함수
+	public static boolean isUserIDExists(String userID) {
+	    String checkUserQuery = "SELECT UserID FROM User WHERE UserID=?";
+	    try {
+	        PreparedStatement preparedStatement = con.prepareStatement(checkUserQuery);
+	        preparedStatement.setString(1, userID);
+	        ResultSet resultSet = preparedStatement.executeQuery();
+	        return resultSet.next(); // true면 중복된 ID가 존재함
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        System.err.println("사용자 ID 확인 중 오류가 발생했습니다.");
+	        return false;
+	    }
 	}
 	
 	public static void signUp(String userID, String name, String email, String password) {
+		if (isUserIDExists(userID)) {
+	        System.out.println("이미 존재하는 사용자 ID입니다. 다른 사용자 ID를 선택해주세요.");
+	        return;
+	    }
 		String insertUserQuery = "INSERT INTO User (UserID, Name, Email, Password) VALUES (?, ?, ?, ?)";
 		try {
 			PreparedStatement preparedStatement = con.prepareStatement(insertUserQuery);
@@ -46,7 +59,6 @@ public class Twitter {
 			 // 포맷 정의        
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
 			String formatedNow = now.format(formatter);
-			addTimeLine(userID,formatedNow);
 		} catch (SQLException e) {
 			e.printStackTrace();
 			System.err.println("회원가입 중 오류가 발생했습니다.");
@@ -110,6 +122,7 @@ public class Twitter {
     		try {
     		  	PreparedStatement preparedStatement = con.prepareStatement(insertTweetQuery);
 			String tweetID = UUID.randomUUID().toString(); // Generate a unique tweetID
+			tweetID = tweetID.replaceAll("-", "").substring(0, 20);
        			String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date()); // Get the current timestamp
        	 		preparedStatement.setString(1, tweetID);
         		preparedStatement.setString(2, userID);
@@ -140,22 +153,6 @@ public class Twitter {
 		}
 	}
 
-	public static void Timeline(String userID) {
-	    String selectTimelineQuery = "SELECT Timestamp, TweetID FROM Timeline WHERE UserID = ? ORDER BY Timestamp DESC";
-	    try {
-	        PreparedStatement preparedStatement = con.prepareStatement(selectTimelineQuery);
-	        preparedStatement.setString(1, userID);
-	        ResultSet rs = preparedStatement.executeQuery();
-	        while (rs.next()) {
-	            String timestamp = rs.getString("Timestamp");
-	            String tweetID = rs.getString("TweetID");
-	            System.out.println("Timestamp: " + timestamp + ", TweetID: " + tweetID);
-	        }
-	    } catch (SQLException e) {
-	        e.printStackTrace();
-	        System.err.println("불러오기 오류.");
-	    }
-	}
 	
 	public static void Follow(String userID, String followID) {									  // 유저1이 유저2를 팔로우하는 상황 가정
 		String insertFollowingQuery = "INSERT INTO Following (UserID, FollowerID) VALUES (?, ?)"; // 유저1의 팔로잉 목록에 유저2를 업데이트
@@ -220,6 +217,54 @@ public class Twitter {
 		}
 	}
 	
+	public static void displayUserAndFollowingTweets(String userID) {
+	    TreeMap<String, String> tweetsMap = new TreeMap<>(); // TreeMap을 사용하여 트윗을 최신순으로 정렬
+
+	    // 자신의 트윗 가져오기
+	    String selectUserTweetsQuery = "SELECT * FROM Tweet WHERE WriterID=?";
+	    try {
+	        PreparedStatement preparedStatement = con.prepareStatement(selectUserTweetsQuery);
+	        preparedStatement.setString(1, userID);
+	        ResultSet resultSet = preparedStatement.executeQuery();
+
+	        while (resultSet.next()) {
+	            String tweetID = resultSet.getString("TweetID");
+	            String content = resultSet.getString("Content");
+	            String timestamp = resultSet.getString("Timestamp");
+	            tweetsMap.put(timestamp, "TweetID: " + tweetID + ", Content: " + content + ", Timestamp: " + timestamp);
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        System.err.println("자신의 트윗을 가져오는 중 오류가 발생했습니다.");
+	    }
+
+	    // 팔로우한 사용자들의 트윗 가져오기
+	    String selectFollowingTweetsQuery = "SELECT * FROM Tweet " +
+	            "JOIN Following ON Tweet.WriterID = Following.FollowerID " +
+	            "WHERE Following.UserID = ?";
+	    try {
+	        PreparedStatement preparedStatement = con.prepareStatement(selectFollowingTweetsQuery);
+	        preparedStatement.setString(1, userID);
+	        ResultSet resultSet = preparedStatement.executeQuery();
+
+	        while (resultSet.next()) {
+	            String tweetID = resultSet.getString("TweetID");
+	            String content = resultSet.getString("Content");
+	            String timestamp = resultSet.getString("Timestamp");
+	            tweetsMap.put(timestamp, "TweetID: " + tweetID + ", Content: " + content + ", Timestamp: " + timestamp);
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        System.err.println("팔로우한 사용자들의 트윗을 가져오는 중 오류가 발생했습니다.");
+	    }
+
+	    // 최신순으로 출력
+	    System.out.println(userID + "님의 트윗과 팔로우한 사용자들의 트윗 (최신순):");
+	    for (String tweet : tweetsMap.descendingMap().values()) {
+	        System.out.println(tweet);
+	    }
+	}
+	
 	public static void main(String[] args) {
 		con = null;
 		try {
@@ -232,60 +277,35 @@ public class Twitter {
 			e.printStackTrace();
 		}
 
-		// SignUP
+//		// SignUP
 		signUp("202235041", "박건우2", "yourkik@gachon.ac.kr", "12345");
 		signUp("202235042", "ex3", "ex3@gachon.ac.kr", "12345");
 		signUp("202235043", "ex4", "ex4@gachon.ac.kr", "12345");
-		
-		//login
-		login("202235040","12345");
+//		
+//		//login
+//		login("202235040","12345");
 
-		//Change Password
-		changePassword("202235041","12345","123456");
-		login("202235041","12345");
-		login("202235041","123456");
-		
-		//Follow
+//		//Change Password
+//		changePassword("202235041","12345","123456");
+//		login("202235041","12345");
+//		login("202235041","123456");
+//		
+//		//Follow
 		Follow("202235040","202235041");
 		Follow("202235040","202235042");
 		Follow("202235040","202235043");
 		Follow("202235043","202235041");
-		
-		//FollowingList
+//		
+//		//FollowingList
 		FollowingList("202235040");
-		//FollowerList
+//		//FollowerList
 		FollowerList("202235041");
 		
-		// Selection
-		Statement stmt = null;
-		ResultSet rs = null;
-		try {
-			stmt = con.createStatement();
-			String select = "select * from Timeline";
-			rs = stmt.executeQuery(select);
-			while (rs.next()) {
-				String UserID = rs.getString(1);
-				if (rs.wasNull())
-					UserID = "null";
-				String timestamp = rs.getString(2);
-				if (rs.wasNull())
-					timestamp = "null";
-				String TweetID = rs.getString(3);
-				if (rs.wasNull())
-					TweetID = "null";
-				System.out.println("UserID : " + UserID + ", timestamp : " + timestamp + ", TweetID : " + TweetID);
-			}
-		} catch (SQLException e1) {
-			e1.printStackTrace();
-		} finally {
-			try {
-				if (stmt != null && !stmt.isClosed())
-					stmt.close();
-			} catch (SQLException e1) {
-				e1.printStackTrace();
-			}
-		}
+		tweet("202235040","Hello");
+		displayUserAndFollowingTweets("202235040");
 		
+		tweet("202235041","Hello 202235040!");
+		displayUserAndFollowingTweets("202235040");
 		
 	}
 }
