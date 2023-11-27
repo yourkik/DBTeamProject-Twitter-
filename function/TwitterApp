@@ -10,6 +10,7 @@ public class SimpleTwitterApp extends JFrame {
     private JTextArea feedArea;
     private boolean isLoggedIn = false;
     private JComboBox<String> userComboBox;
+    private String userid = null;
     
     public SimpleTwitterApp() {
         //Initialize GUI components
@@ -59,6 +60,7 @@ public class SimpleTwitterApp extends JFrame {
 
                     if (checkLogin(inputId, inputPassword)) {
                         isLoggedIn = true;
+                        userid = inputId;
                         JOptionPane.showMessageDialog(SimpleTwitterApp.this, "로그인 되었습니다.", "로그인 성공", JOptionPane.INFORMATION_MESSAGE);
                         loginButton.setText("Logout");
                         //로그인 사용자의 타임라인 표시
@@ -78,6 +80,7 @@ public class SimpleTwitterApp extends JFrame {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     isLoggedIn = false;
+                    userid = null;
                     JOptionPane.showMessageDialog(SimpleTwitterApp.this, "로그아웃 되었습니다.", "로그아웃", JOptionPane.INFORMATION_MESSAGE);
                     //로그아웃 시 피드 영역을 비우기
                     feedArea.setText("");
@@ -260,7 +263,7 @@ public class SimpleTwitterApp extends JFrame {
     private void connectToDatabase() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/twitter?serverTimezone=UTC&useSSL=false", "root", "1234");
+            connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/twitter?serverTimezone=UTC&useSSL=false", "root", "12345");
             System.out.println(connection); //추가 \
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
@@ -355,7 +358,7 @@ public class SimpleTwitterApp extends JFrame {
             String newPassword = new String(newPasswordField.getPassword());
             String confirmPassword = new String(confirmPasswordField.getPassword());
 
-            if (!checkLogin(usernameField.getText(), currentPassword)) {
+            if (!checkLogin(userid, currentPassword)) {
                 JOptionPane.showMessageDialog(null, "현재 비밀번호가 일치하지 않습니다.", "입력 오류", JOptionPane.WARNING_MESSAGE);
                 return;
             }
@@ -365,7 +368,7 @@ public class SimpleTwitterApp extends JFrame {
                 return;
             }
 
-            updatePassword(usernameField.getText(), newPassword);
+            updatePassword(userid, newPassword);
         }, new String[]{"Current Password:", "New Password:", "Confirm New Password:"}, new JComponent[]{currentPasswordField, newPasswordField, confirmPasswordField});
     }
 
@@ -668,10 +671,11 @@ public class SimpleTwitterApp extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             SimpleTwitterApp app = new SimpleTwitterApp();
-            app.setSize(500, 400);
+            app.setSize(600, 400);
             app.setTitle("Twitter");
             app.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             app.setVisible(true);
         });
     }
 }
+
