@@ -265,7 +265,7 @@ public class Twitter {
 	    }
 	}
 	
-	public static void main(String[] args) {
+	public static void Connection() {
 		con = null;
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver");
@@ -276,7 +276,10 @@ public class Twitter {
 		} catch (ClassNotFoundException | SQLException e) {
 			e.printStackTrace();
 		}
-
+	}
+	
+	public static void main(String[] args) {
+		Connection();
 //		// SignUP
 		signUp("202235041", "박건우2", "yourkik@gachon.ac.kr", "12345");
 		signUp("202235042", "ex3", "ex3@gachon.ac.kr", "12345");
