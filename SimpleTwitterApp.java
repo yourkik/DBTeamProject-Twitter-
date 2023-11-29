@@ -13,6 +13,7 @@ public class SimpleTwitterApp extends JFrame {
 	private JTextArea feedArea;
 	private boolean isLoggedIn = false;
 	private JComboBox<String> userComboBox;
+	private String loginUserId;
 
 	Twitter twitter = new Twitter();
 
@@ -64,6 +65,7 @@ public class SimpleTwitterApp extends JFrame {
 					//2023.11.29 박건우 login 확인 메서드 동작 확인
 					if (Twitter.login(inputId, inputPassword)) {
 						isLoggedIn = true;
+						loginUserId = inputId;
 						JOptionPane.showMessageDialog(SimpleTwitterApp.this, "로그인 되었습니다.", "로그인 성공",
 								JOptionPane.INFORMATION_MESSAGE);
 						loginButton.setText("Logout");
@@ -86,6 +88,7 @@ public class SimpleTwitterApp extends JFrame {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					isLoggedIn = false;
+					loginUserId = null;
 					JOptionPane.showMessageDialog(SimpleTwitterApp.this, "로그아웃 되었습니다.", "로그아웃",
 							JOptionPane.INFORMATION_MESSAGE);
 					// 로그아웃 시 피드 영역을 비우기
@@ -268,21 +271,6 @@ public class SimpleTwitterApp extends JFrame {
 		});
 	}
 
-	private boolean checkLogin(String inputId, String inputPassword) {
-		try {
-			String query = "SELECT * FROM User WHERE UserID = ? AND Password = ?";
-			try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-				preparedStatement.setString(1, inputId);
-				preparedStatement.setString(2, inputPassword);
-				try (ResultSet resultSet = preparedStatement.executeQuery()) {
-					return resultSet.next();
-				}
-			}
-		} catch (SQLException ex) {
-			ex.printStackTrace();
-			return false;
-		}
-	}
 
 	// 새로 열리는 창 설정
 	private void openInputDialog(String title, String okButtonText, ActionListener okAction, String[] labels,
@@ -329,6 +317,7 @@ public class SimpleTwitterApp extends JFrame {
 		}, new String[] { "", "Write for Tweet:" }, new JComponent[] { new JPanel(), tweetContentField });
 	}
 
+	// 2023.11.29 정은섭 비밀번호 변경 수정
 	// Change Passaword창 열기
 	private void openChangePasswordDialog() {
 		JPasswordField currentPasswordField = new JPasswordField(10);
@@ -339,19 +328,19 @@ public class SimpleTwitterApp extends JFrame {
 			String currentPassword = new String(currentPasswordField.getPassword());
 			String newPassword = new String(newPasswordField.getPassword());
 			String confirmPassword = new String(confirmPasswordField.getPassword());
-
-			if (!checkLogin(usernameField.getText(), currentPassword)) {
+			if (!twitter.checkLogin(loginUserId, currentPassword)) {
 				JOptionPane.showMessageDialog(null, "현재 비밀번호가 일치하지 않습니다.", "입력 오류", JOptionPane.WARNING_MESSAGE);
 				return;
 			}
-
 			if (!newPassword.equals(confirmPassword)) {
 				JOptionPane.showMessageDialog(null, "새 비밀번호와 확인 비밀번호가 일치하지 않습니다.", "입력 오류",
 						JOptionPane.WARNING_MESSAGE);
 				return;
 			}
-
-			updatePassword(usernameField.getText(), newPassword);
+			if(!twitter.updatePassword(loginUserId, newPassword)) {
+				JOptionPane.showMessageDialog(this, "비밀번호 변경 중 오류가 발생했습니다.", "Error", JOptionPane.ERROR_MESSAGE);
+			}
+			JOptionPane.showMessageDialog(this, "비밀번호가 성공적으로 변경되었습니다.", "Success", JOptionPane.INFORMATION_MESSAGE);
 		}, new String[] { "Current Password:", "New Password:", "Confirm New Password:" },
 				new JComponent[] { currentPasswordField, newPasswordField, confirmPasswordField });
 	}
@@ -562,22 +551,6 @@ public class SimpleTwitterApp extends JFrame {
 		}
 	}
 
-	// 비밀번호 업데이트 메서드
-	private void updatePassword(String userId, String newPassword) {
-		try {
-			String query = "UPDATE User SET Password = ? WHERE UserID = ?";
-			try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-				preparedStatement.setString(1, newPassword);
-				preparedStatement.setString(2, userId);
-				preparedStatement.executeUpdate();
-			}
-			JOptionPane.showMessageDialog(this, "비밀번호가 성공적으로 변경되었습니다.", "Success", JOptionPane.INFORMATION_MESSAGE);
-		} catch (SQLException e) {
-			e.printStackTrace();
-			JOptionPane.showMessageDialog(this, "비밀번호 변경 중 오류가 발생했습니다.", "Error", JOptionPane.ERROR_MESSAGE);
-		}
-	}
-
 	// 팔로우 메서드
 	public static void Follow(String userID, String followID) { // 유저1이 유저2를 팔로우하는 상황 가정
 		String insertFollowingQuery = "INSERT INTO Following (UserID, FollowerID) VALUES (?, ?)"; // 유저1의 팔로잉 목록에 유저2를
@@ -655,7 +628,7 @@ public class SimpleTwitterApp extends JFrame {
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(() -> {
 			SimpleTwitterApp app = new SimpleTwitterApp();
-			app.setSize(500, 400);
+			app.setSize(600, 400);
 			app.setTitle("Twitter");
 			app.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 			app.setVisible(true);

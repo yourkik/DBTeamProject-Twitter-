@@ -17,6 +17,9 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.UUID;
+
+import javax.swing.JOptionPane;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
@@ -94,26 +97,37 @@ public class Twitter {
 		return false;
 	}
 
-	public static void changePassword(String userID, String nowPassword, String newPassword) {
-		String updatePasswordQuery = "UPDATE User SET Password=? WHERE UserID=?";
-		if (login(userID, nowPassword)) {
-			try {
-				PreparedStatement preparedStatement = con.prepareStatement(updatePasswordQuery);
-				preparedStatement.setString(1, newPassword);
-				preparedStatement.setString(2, userID);
-				int rowsAffected = preparedStatement.executeUpdate();
-
-				if (rowsAffected > 0) {//같은 UserID와 Password를 가진 사람은 없기 때문에 >0으로 설정했습니다.
-					System.out.println("비밀번호 변경이 완료되었습니다.");
-				} else {
-					System.out.println("해당 사용자가 존재하지 않습니다.");
+	public static boolean checkLogin(String inputId, String inputPassword) {
+		try {
+			String query = "SELECT * FROM User WHERE UserID = ? AND Password = ?";
+			try (PreparedStatement preparedStatement = con.prepareStatement(query)) {
+				preparedStatement.setString(1, inputId);
+				preparedStatement.setString(2, inputPassword);
+				try (ResultSet resultSet = preparedStatement.executeQuery()) {
+					return resultSet.next();
 				}
-			} catch (SQLException e) {
-				e.printStackTrace();
-				System.err.println("비밀번호 변경 중 오류가 발생했습니다.");
 			}
-		} else {
-			System.out.println("현재 비밀번호가 맞지 않습니다 다시 확인해주세요");
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+			return false;
+		}
+	}
+
+	// 비밀번호 업데이트 메서드
+	public static boolean updatePassword(String userId, String newPassword) {
+		try {
+			String query = "UPDATE User SET Password = ? WHERE UserID = ?";
+			try (PreparedStatement preparedStatement = con.prepareStatement(query)) {
+				preparedStatement.setString(1, newPassword);
+				preparedStatement.setString(2, userId);
+				preparedStatement.executeUpdate();
+			}
+			System.out.println("비밀번호가 성공적으로 변경되었습니다.");
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.err.println("비밀번호 변경 중 오류가 발생했습니다.");
+			return false;
 		}
 	}
 
