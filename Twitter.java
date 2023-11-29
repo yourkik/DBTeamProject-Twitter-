@@ -217,7 +217,7 @@ public class Twitter {
 		}
 	}
 	
-	public static void displayUserAndFollowingTweets(String userID) {
+	public static TreeMap<String, String> displayUserAndFollowingTweets(String userID) {
 	    TreeMap<String, String> tweetsMap = new TreeMap<>(); // TreeMap을 사용하여 트윗을 최신순으로 정렬
 
 	    // 자신의 트윗 가져오기
@@ -230,12 +230,15 @@ public class Twitter {
 	        while (resultSet.next()) {
 	            String tweetID = resultSet.getString("TweetID");
 	            String content = resultSet.getString("Content");
+	            String WriterID = resultSet.getString("WriterID");
 	            String timestamp = resultSet.getString("Timestamp");
-	            tweetsMap.put(timestamp, "TweetID: " + tweetID + ", Content: " + content + ", Timestamp: " + timestamp);
+	            tweetsMap.put(timestamp, "TweetID: " + tweetID + ", WriterID: "+WriterID + ", Content: " + content + ", Timestamp: " + timestamp);
 	        }
 	    } catch (SQLException e) {
 	        e.printStackTrace();
 	        System.err.println("자신의 트윗을 가져오는 중 오류가 발생했습니다.");
+	        tweetsMap.put("-1", "자신의 트윗을 가져오는 중 오류가 발생했습니다.");
+	        return tweetsMap;
 	    }
 
 	    // 팔로우한 사용자들의 트윗 가져오기
@@ -250,12 +253,15 @@ public class Twitter {
 	        while (resultSet.next()) {
 	            String tweetID = resultSet.getString("TweetID");
 	            String content = resultSet.getString("Content");
+	            String WriterID = resultSet.getString("WriterID");
 	            String timestamp = resultSet.getString("Timestamp");
-	            tweetsMap.put(timestamp, "TweetID: " + tweetID + ", Content: " + content + ", Timestamp: " + timestamp);
+	            tweetsMap.put(timestamp, "TweetID: " + tweetID +", WriterID: "+WriterID+", Content: " + content + ", Timestamp: " + timestamp);
 	        }
 	    } catch (SQLException e) {
 	        e.printStackTrace();
 	        System.err.println("팔로우한 사용자들의 트윗을 가져오는 중 오류가 발생했습니다.");
+	        tweetsMap.put("0", "팔로우한 사용자들의 트윗을 가져오는 중 오류가 발생했습니다.");
+	        return tweetsMap;
 	    }
 
 	    // 최신순으로 출력
@@ -263,6 +269,7 @@ public class Twitter {
 	    for (String tweet : tweetsMap.descendingMap().values()) {
 	        System.out.println(tweet);
 	    }
+	    return tweetsMap;
 	}
 	
 	public static void Connection() {
@@ -281,34 +288,34 @@ public class Twitter {
 	public static void main(String[] args) {
 		Connection();
 //		// SignUP
-		signUp("202235041", "박건우2", "yourkik@gachon.ac.kr", "12345");
-		signUp("202235042", "ex3", "ex3@gachon.ac.kr", "12345");
-		signUp("202235043", "ex4", "ex4@gachon.ac.kr", "12345");
+//		signUp("202235041", "박건우2", "yourkik@gachon.ac.kr", "12345");
+//		signUp("202235042", "ex3", "ex3@gachon.ac.kr", "12345");
+//		signUp("202235043", "ex4", "ex4@gachon.ac.kr", "12345");
 //		
 //		//login
 //		login("202235040","12345");
-
+//
 //		//Change Password
 //		changePassword("202235041","12345","123456");
 //		login("202235041","12345");
 //		login("202235041","123456");
 //		
 //		//Follow
-		Follow("202235040","202235041");
-		Follow("202235040","202235042");
-		Follow("202235040","202235043");
-		Follow("202235043","202235041");
+//		Follow("202235040","202235041");
+//		Follow("202235040","202235042");
+//		Follow("202235040","202235043");
+//		Follow("202235043","202235041");
 //		
 //		//FollowingList
-		FollowingList("202235040");
+//		FollowingList("202235040");
 //		//FollowerList
-		FollowerList("202235041");
-		
-		tweet("202235040","Hello");
-		displayUserAndFollowingTweets("202235040");
-		
-		tweet("202235041","Hello 202235040!");
-		displayUserAndFollowingTweets("202235040");
+//		FollowerList("202235041");
+//		
+//		//tweet("202235040","Hello");
+//		displayUserAndFollowingTweets("202235040");
+//		
+//		//tweet("202235041","Hello 202235040!");
+//		displayUserAndFollowingTweets("202235040");
 		
 	}
 }

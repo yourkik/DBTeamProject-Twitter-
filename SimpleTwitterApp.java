@@ -5,650 +5,660 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.*;
+import java.util.TreeMap;
 
 public class SimpleTwitterApp extends JFrame {
-	
-    private JTextField useridField, usernameField, useremailField, passwordField, followField, tweetField;
-    private JTextArea feedArea;
-    private boolean isLoggedIn = false;
-    private JComboBox<String> userComboBox;
 
-    Twitter twitter = new Twitter();
-    public SimpleTwitterApp() {
-        //Initialize GUI components
-        useridField = new JTextField(10);
-        usernameField = new JTextField(10);
-        useremailField = new JTextField(20);
-        passwordField = new JPasswordField(10);
-        followField = new JTextField(10);
-        tweetField = new JTextField(30);
-        feedArea = new JTextArea(10, 30);
-        userComboBox = new JComboBox<>();
+	private JTextField useridField, usernameField, useremailField, passwordField, followField, tweetField;
+	private JTextArea feedArea;
+	private boolean isLoggedIn = false;
+	private JComboBox<String> userComboBox;
 
-        JButton createUserButton = new JButton("Create User");
-        JButton followButton = new JButton("Follow");
-        JButton postButton = new JButton("Post");
+	Twitter twitter = new Twitter();
 
-        //Connect to the database
-        Twitter.Connection();
+	public SimpleTwitterApp() {
+		// Initialize GUI components
+		useridField = new JTextField(10);
+		usernameField = new JTextField(10);
+		useremailField = new JTextField(20);
+		passwordField = new JPasswordField(10);
+		followField = new JTextField(10);
+		tweetField = new JTextField(30);
+		feedArea = new JTextArea(10, 30);
+		userComboBox = new JComboBox<>();
 
-        //Set up the GUI layout
-        setLayout(new BorderLayout());
+		JButton createUserButton = new JButton("Create User");
+		JButton followButton = new JButton("Follow");
+		JButton postButton = new JButton("Post");
 
-        JPanel userPanel = new JPanel();
-        userPanel.setBackground(new Color(126, 210, 255)); //배경 색상
-        if (!isLoggedIn) {
-            //로그인 필드 및 버튼
-            JTextField loginIdField = new JTextField(10);
-            JPasswordField loginPasswordField = new JPasswordField(10);
-            JButton loginButton = new JButton("Login");
-            loginButton.setBackground(new Color(255, 255, 255)); //버튼 색상
-            loginButton.setForeground(Color.BLUE); //텍스트 색상
+		// Connect to the database
+		Twitter.Connection();
 
-            userPanel.add(new JLabel("UserID:"));
-            userPanel.add(loginIdField);
-            userPanel.add(new JLabel("Password:"));
-            userPanel.add(loginPasswordField);
-            userPanel.add(loginButton);
-            
+		// Set up the GUI layout
+		setLayout(new BorderLayout());
 
-            //로그인 버튼 액션 처리
-            loginButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    //로그인 로직 수행
-                    String inputId = loginIdField.getText();
-                    String inputPassword = new String(loginPasswordField.getPassword());
+		JPanel userPanel = new JPanel();
+		userPanel.setBackground(new Color(126, 210, 255)); // 배경 색상
+		if (!isLoggedIn) {
+			// 로그인 필드 및 버튼
+			JTextField loginIdField = new JTextField(10);
+			JPasswordField loginPasswordField = new JPasswordField(10);
+			JButton loginButton = new JButton("Login");
+			loginButton.setBackground(new Color(255, 255, 255)); // 버튼 색상
+			loginButton.setForeground(Color.BLUE); // 텍스트 색상
 
-                    if (checkLogin(inputId, inputPassword)) {
-                        isLoggedIn = true;
-                        JOptionPane.showMessageDialog(SimpleTwitterApp.this, "로그인 되었습니다.", "로그인 성공", JOptionPane.INFORMATION_MESSAGE);
-                        loginButton.setText("Logout");
-                        //로그인 사용자의 타임라인 표시
-                        displayUserFeed(inputId);
-                    } else {
-                        JOptionPane.showMessageDialog(SimpleTwitterApp.this, "아이디 또는 비밀번호가 일치하지 않습니다.", "로그인 실패", JOptionPane.ERROR_MESSAGE);
-                    }
-                }
-            });
-        } else {
-            //로그인된 경우에는 로그아웃 버튼 표시
-            JButton logoutButton = new JButton("Logout");
-            userPanel.add(logoutButton);
+			userPanel.add(new JLabel("UserID:"));
+			userPanel.add(loginIdField);
+			userPanel.add(new JLabel("Password:"));
+			userPanel.add(loginPasswordField);
+			userPanel.add(loginButton);
 
-            //로그아웃 버튼 액션 처리
-            logoutButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    isLoggedIn = false;
-                    JOptionPane.showMessageDialog(SimpleTwitterApp.this, "로그아웃 되었습니다.", "로그아웃", JOptionPane.INFORMATION_MESSAGE);
-                    //로그아웃 시 피드 영역을 비우기
-                    feedArea.setText("");
-                }
-            });
-        }
-        userPanel.add(createUserButton);
-        createUserButton.setBackground(new Color(255, 255, 255));
-        createUserButton.setForeground(Color.BLUE);
+			// 로그인 버튼 액션 처리
+			loginButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// 로그인 로직 수행
+					String inputId = loginIdField.getText();
+					String inputPassword = new String(loginPasswordField.getPassword());
 
-        //피드 영역을 JScrollPane로 감싸서 스크롤 가능하게
-        JScrollPane feedScrollPane = new JScrollPane(feedArea);
-        feedScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        
-        //피드 영역 왼쪽에 새로운 영역을 추가할 패널을 생성
-        JPanel feedLeftPanel = new JPanel();
-        feedLeftPanel.setLayout(new BoxLayout(feedLeftPanel, BoxLayout.Y_AXIS));
-        feedLeftPanel.setBackground(new Color(255, 255, 255));
+					//2023.11.29 박건우 login 확인 메서드 동작 확인
+					if (Twitter.login(inputId, inputPassword)) {
+						isLoggedIn = true;
+						JOptionPane.showMessageDialog(SimpleTwitterApp.this, "로그인 되었습니다.", "로그인 성공",
+								JOptionPane.INFORMATION_MESSAGE);
+						loginButton.setText("Logout");
+						// 로그인 사용자의 타임라인 표시
+						displayUserFeed(inputId);
+					} else {
+						JOptionPane.showMessageDialog(SimpleTwitterApp.this, "아이디 또는 비밀번호가 일치하지 않습니다.", "로그인 실패",
+								JOptionPane.ERROR_MESSAGE);
+					}
+				}
+			});
+		} else {
+			// 로그인된 경우에는 로그아웃 버튼 표시
+			JButton logoutButton = new JButton("Logout");
+			userPanel.add(logoutButton);
 
-        //팔로잉 목록 버튼
-        JButton followingButton = new JButton("Following");
-        setButtonSize(followingButton);
-        followingButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                //팔로잉 목록 보기 로직 추가
-                displayFollowingList();
-                //팔로우할 수 있는 user검색 후 팔로우 기능
-                displayFollowableUsers();
-            }
-        });
-        feedLeftPanel.add(followingButton);
-        followingButton.setBackground(new Color(255, 255, 255));
-        followingButton.setForeground(Color.BLUE);
+			// 로그아웃 버튼 액션 처리
+			logoutButton.addActionListener(new ActionListener() {
 
-        //팔로워 목록 버튼
-        JButton followersButton = new JButton("Followers");
-        setButtonSize(followersButton);
-        followersButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                //팔로워 목록 보기 로직 추가
-                displayFollowersList();
-            }
-        });
-        feedLeftPanel.add(followersButton);
-        followersButton.setBackground(new Color(255, 255, 255));
-        followersButton.setForeground(Color.BLUE);
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					isLoggedIn = false;
+					JOptionPane.showMessageDialog(SimpleTwitterApp.this, "로그아웃 되었습니다.", "로그아웃",
+							JOptionPane.INFORMATION_MESSAGE);
+					// 로그아웃 시 피드 영역을 비우기
+					feedArea.setText("");
+				}
+			});
+		}
+		userPanel.add(createUserButton);
+		createUserButton.setBackground(new Color(255, 255, 255));
+		createUserButton.setForeground(Color.BLUE);
 
-        //비밀번호 변경 버튼
-        JButton changePasswordButton = new JButton("<html>Change<br>Password</html>");
-        setButtonSize(changePasswordButton);
-        changePasswordButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                //비밀번호 변경 창 열기 로직 추가
-                openChangePasswordDialog();
-            }
-        });
-        feedLeftPanel.add(changePasswordButton);
-        changePasswordButton.setBackground(new Color(255, 255, 255));
-        changePasswordButton.setForeground(Color.BLUE);
-        
-        //트윗 버튼 추가
-        JButton tweetActionButton = new JButton("Tweet");
-        setButtonSize(tweetActionButton);
-        tweetActionButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                //트윗을 작성하고 게시하기 위한 대화 상자 열기
-                openTweetDialog();
-            }
-        });
-        // 트윗 버튼을 userPanel에 추가
-        feedLeftPanel.add(tweetActionButton);
-        tweetActionButton.setBackground(new Color(255, 255, 255));
-        tweetActionButton.setForeground(Color.BLUE);
-        
-        // 전체 레이아웃 구성
-        JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new BorderLayout());
-        mainPanel.add(feedScrollPane, BorderLayout.CENTER);
-        mainPanel.add(userPanel, BorderLayout.NORTH);
-        //피드 영역의 왼쪽에 패널 추가
-        mainPanel.add(feedLeftPanel, BorderLayout.WEST);
-        //왼쪽 패널 크기 조정
-        feedLeftPanel.setPreferredSize(new Dimension(200, feedLeftPanel.getHeight()));
-        add(mainPanel, BorderLayout.CENTER);
-        
-        //회원가입 다이얼로그 생성
-        createUserButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                //다이얼로그 생성
-                JDialog createUserDialog = new JDialog(SimpleTwitterApp.this, "Create User", true);
-                createUserDialog.setLayout(new BorderLayout());
+		// 피드 영역을 JScrollPane로 감싸서 스크롤 가능하게
+		JScrollPane feedScrollPane = new JScrollPane(feedArea);
+		feedScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
-                //입력 필드 및 레이블 추가
-                JTextField userIdField = new JTextField(10);
-                JTextField userNameField = new JTextField(10);
-                JTextField userEmailField = new JTextField(20);
-                JPasswordField userPasswordField = new JPasswordField(10);
+		// 피드 영역 왼쪽에 새로운 영역을 추가할 패널을 생성
+		JPanel feedLeftPanel = new JPanel();
+		feedLeftPanel.setLayout(new BoxLayout(feedLeftPanel, BoxLayout.Y_AXIS));
+		feedLeftPanel.setBackground(new Color(255, 255, 255));
 
-                JPanel inputPanel = new JPanel(new GridLayout(4, 2));
-                inputPanel.add(new JLabel("UserID:"));
-                inputPanel.add(userIdField);
-                inputPanel.add(new JLabel("Username:"));
-                inputPanel.add(userNameField);
-                inputPanel.add(new JLabel("User Email:"));
-                inputPanel.add(userEmailField);
-                inputPanel.add(new JLabel("Password:"));
-                inputPanel.add(userPasswordField);
+		// 팔로잉 목록 버튼
+		JButton followingButton = new JButton("Following");
 
-                createUserDialog.add(inputPanel, BorderLayout.CENTER);
+		setButtonSize(followingButton);
+		followingButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// 팔로잉 목록 보기 로직 추가
+				displayFollowingList();
+				// 팔로우할 수 있는 user검색 후 팔로우 기능
+				displayFollowableUsers();
+			}
+		});
+		feedLeftPanel.add(followingButton);
+		followingButton.setBackground(new Color(255, 255, 255));
+		followingButton.setForeground(Color.BLUE);
 
-                //확인 버튼 추가
-                JButton okButton = new JButton("OK");
-                okButton.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        //입력된 정보를 사용하여 사용자 생성
-                        String userId = userIdField.getText();
-                        String userName = userNameField.getText();
-                        String userEmail = userEmailField.getText();
-                        String userPassword = new String(userPasswordField.getPassword());
+		// 팔로워 목록 버튼
+		JButton followersButton = new JButton("Followers");
+		setButtonSize(followersButton);
+		followersButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// 팔로워 목록 보기 로직 추가
+				displayFollowersList();
+			}
+		});
+		feedLeftPanel.add(followersButton);
+		followersButton.setBackground(new Color(255, 255, 255));
+		followersButton.setForeground(Color.BLUE);
 
-                        //회원가입 메서드 호출
-                        twitter.signUp(userId, userName, userEmail, userPassword);
+		// 비밀번호 변경 버튼
+		JButton changePasswordButton = new JButton("<html>Change<br>Password</html>");
+		setButtonSize(changePasswordButton);
+		changePasswordButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// 비밀번호 변경 창 열기 로직 추가
+				openChangePasswordDialog();
+			}
+		});
+		feedLeftPanel.add(changePasswordButton);
+		changePasswordButton.setBackground(new Color(255, 255, 255));
+		changePasswordButton.setForeground(Color.BLUE);
 
-                        //다이얼로그 종료
-                        createUserDialog.dispose();
-                    }
-                });
+		// 트윗 버튼 추가
+		JButton tweetActionButton = new JButton("Tweet");
+		setButtonSize(tweetActionButton);
+		tweetActionButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// 트윗을 작성하고 게시하기 위한 대화 상자 열기
+				openTweetDialog();
+			}
+		});
+		// 트윗 버튼을 userPanel에 추가
+		feedLeftPanel.add(tweetActionButton);
+		tweetActionButton.setBackground(new Color(255, 255, 255));
+		tweetActionButton.setForeground(Color.BLUE);
 
-                //취소 버튼 추가
-                JButton cancelButton = new JButton("Cancel");
-                cancelButton.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        //다이얼로그 종료
-                        createUserDialog.dispose();
-                    }
-                });
+		// 전체 레이아웃 구성
+		JPanel mainPanel = new JPanel();
+		mainPanel.setLayout(new BorderLayout());
+		mainPanel.add(feedScrollPane, BorderLayout.CENTER);
+		mainPanel.add(userPanel, BorderLayout.NORTH);
+		// 피드 영역의 왼쪽에 패널 추가
+		mainPanel.add(feedLeftPanel, BorderLayout.WEST);
+		// 왼쪽 패널 크기 조정
+		feedLeftPanel.setPreferredSize(new Dimension(200, feedLeftPanel.getHeight()));
+		add(mainPanel, BorderLayout.CENTER);
 
-                JPanel buttonPanel = new JPanel();
-                buttonPanel.add(okButton);
-                buttonPanel.add(cancelButton);
-                createUserDialog.add(buttonPanel, BorderLayout.SOUTH);
+		// 회원가입 다이얼로그 생성
+		createUserButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// 다이얼로그 생성
+				JDialog createUserDialog = new JDialog(SimpleTwitterApp.this, "Create User", true);
+				createUserDialog.setLayout(new BorderLayout());
 
-                //다이얼로그 크기와 위치 설정
-                createUserDialog.setSize(300, 150);
-                createUserDialog.setLocationRelativeTo(SimpleTwitterApp.this);
-                createUserDialog.setVisible(true);
-            }
-        });
+				// 입력 필드 및 레이블 추가
+				JTextField userIdField = new JTextField(10);
+				JTextField userNameField = new JTextField(10);
+				JTextField userEmailField = new JTextField(20);
+				JPasswordField userPasswordField = new JPasswordField(10);
 
-        followButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Get the selected or entered username from the userComboBox
-                String followingUsername = userComboBox.getSelectedItem().toString();
-                if (followingUsername.isEmpty()) {
-                    JOptionPane.showMessageDialog(SimpleTwitterApp.this, "Please enter a username to follow.", "Info", JOptionPane.INFORMATION_MESSAGE);
-                    return;
-                }
-                
-                // Call the followUser method
-                followUser(followingUsername);
-            }
-        });
-        postButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String tweetContent = tweetField.getText();
-                postTweet(tweetContent);
-            }
-        });
-    }
-    
-    private boolean checkLogin(String inputId, String inputPassword) {
-        try {
-            String query = "SELECT * FROM User WHERE UserID = ? AND Password = ?";
-            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-                preparedStatement.setString(1, inputId);
-                preparedStatement.setString(2, inputPassword);
-                try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                    return resultSet.next(); 
-                }
-            }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-            return false;
-        }
-    }
+				JPanel inputPanel = new JPanel(new GridLayout(4, 2));
+				inputPanel.add(new JLabel("UserID:"));
+				inputPanel.add(userIdField);
+				inputPanel.add(new JLabel("Username:"));
+				inputPanel.add(userNameField);
+				inputPanel.add(new JLabel("User Email:"));
+				inputPanel.add(userEmailField);
+				inputPanel.add(new JLabel("Password:"));
+				inputPanel.add(userPasswordField);
 
- // 새로 열리는 창 설정
-    private void openInputDialog(String title, String okButtonText, ActionListener okAction, String[] labels, JComponent[] components) {
-        JDialog dialog = new JDialog(this, title, true);
-        dialog.setLayout(new BorderLayout());
+				createUserDialog.add(inputPanel, BorderLayout.CENTER);
 
-        JPanel inputPanel = new JPanel(new GridLayout(labels.length, 2));
-        for (int i = 0; i < labels.length; i++) {
-            inputPanel.add(new JLabel(labels[i]));
-            inputPanel.add(components[i]);
-        }
+				// 확인 버튼 추가
+				JButton okButton = new JButton("OK");
+				okButton.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						// 입력된 정보를 사용하여 사용자 생성
+						String userId = userIdField.getText();
+						String userName = userNameField.getText();
+						String userEmail = userEmailField.getText();
+						String userPassword = new String(userPasswordField.getPassword());
 
-        dialog.add(inputPanel, BorderLayout.CENTER);
+						// 회원가입 메서드 호출
+						twitter.signUp(userId, userName, userEmail, userPassword);
 
-        JButton okButton = new JButton(okButtonText);
-        okButton.addActionListener(okAction);
+						// 다이얼로그 종료
+						createUserDialog.dispose();
+					}
+				});
 
-        JButton cancelButton = new JButton("Cancel");
-        cancelButton.addActionListener(e -> dialog.dispose());
+				// 취소 버튼 추가
+				JButton cancelButton = new JButton("Cancel");
+				cancelButton.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						// 다이얼로그 종료
+						createUserDialog.dispose();
+					}
+				});
 
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.add(okButton);
-        buttonPanel.add(cancelButton);
-        dialog.add(buttonPanel, BorderLayout.SOUTH);
+				JPanel buttonPanel = new JPanel();
+				buttonPanel.add(okButton);
+				buttonPanel.add(cancelButton);
+				createUserDialog.add(buttonPanel, BorderLayout.SOUTH);
 
-        dialog.setSize(300, 150);
-        dialog.setLocationRelativeTo(this);
-        dialog.setVisible(true);
-    }
+				// 다이얼로그 크기와 위치 설정
+				createUserDialog.setSize(300, 150);
+				createUserDialog.setLocationRelativeTo(SimpleTwitterApp.this);
+				createUserDialog.setVisible(true);
+			}
+		});
 
-    // Tweet창 열기
-    private void openTweetDialog() {
-        JTextField tweetContentField = new JTextField(30);
-        JLabel label = new JLabel("write the comment for tweet: ");
+		followButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// Get the selected or entered username from the userComboBox
+				String followingUsername = userComboBox.getSelectedItem().toString();
+				if (followingUsername.isEmpty()) {
+					JOptionPane.showMessageDialog(SimpleTwitterApp.this, "Please enter a username to follow.", "Info",
+							JOptionPane.INFORMATION_MESSAGE);
+					return;
+				}
 
-        openInputDialog("Write Tweet", "Tweet", e -> {
-            String tweetContent = tweetContentField.getText().trim();
-            if (tweetContent.isEmpty()) {
-                JOptionPane.showMessageDialog(null, "Tweet comment is empty.", "error", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            postTweet(tweetContent);
-        }, new String[]{"", "Write for Tweet:"}, new JComponent[]{new JPanel(), tweetContentField});
-    }
-    //Change Passaword창 열기
-    private void openChangePasswordDialog() {
-        JPasswordField currentPasswordField = new JPasswordField(10);
-        JPasswordField newPasswordField = new JPasswordField(10);
-        JPasswordField confirmPasswordField = new JPasswordField(10);
+				// Call the followUser method
+				followUser(followingUsername);
+			}
+		});
+		postButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String tweetContent = tweetField.getText();
+				postTweet(tweetContent);
+			}
+		});
+	}
 
-        openInputDialog("Change Password", "Change Password", e -> {
-            String currentPassword = new String(currentPasswordField.getPassword());
-            String newPassword = new String(newPasswordField.getPassword());
-            String confirmPassword = new String(confirmPasswordField.getPassword());
+	private boolean checkLogin(String inputId, String inputPassword) {
+		try {
+			String query = "SELECT * FROM User WHERE UserID = ? AND Password = ?";
+			try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+				preparedStatement.setString(1, inputId);
+				preparedStatement.setString(2, inputPassword);
+				try (ResultSet resultSet = preparedStatement.executeQuery()) {
+					return resultSet.next();
+				}
+			}
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+			return false;
+		}
+	}
 
-            if (!checkLogin(usernameField.getText(), currentPassword)) {
-                JOptionPane.showMessageDialog(null, "현재 비밀번호가 일치하지 않습니다.", "입력 오류", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
+	// 새로 열리는 창 설정
+	private void openInputDialog(String title, String okButtonText, ActionListener okAction, String[] labels,
+			JComponent[] components) {
+		JDialog dialog = new JDialog(this, title, true);
+		dialog.setLayout(new BorderLayout());
 
-            if (!newPassword.equals(confirmPassword)) {
-                JOptionPane.showMessageDialog(null, "새 비밀번호와 확인 비밀번호가 일치하지 않습니다.", "입력 오류", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
+		JPanel inputPanel = new JPanel(new GridLayout(labels.length, 2));
+		for (int i = 0; i < labels.length; i++) {
+			inputPanel.add(new JLabel(labels[i]));
+			inputPanel.add(components[i]);
+		}
 
-            updatePassword(usernameField.getText(), newPassword);
-        }, new String[]{"Current Password:", "New Password:", "Confirm New Password:"}, new JComponent[]{currentPasswordField, newPasswordField, confirmPasswordField});
-    }
+		dialog.add(inputPanel, BorderLayout.CENTER);
 
-    private void postTweet(String tweetContent) {
-        try {
-            if (!isLoggedIn) {
-                JOptionPane.showMessageDialog(this, "로그인 후에 트윗할 수 있습니다.", "로그인 필요", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            System.out.println(tweetContent);
-            String currentUser = usernameField.getText();
-            String tweetId = generateTweetId();
-            //TweetID 중복 확인
-            while (isTweetIdDuplicate(tweetId)) {
-                tweetId = generateTweetId();
-            }
-            String timestamp = new java.text.SimpleDateFormat("yyyy.MM.dd.HH:mm").format(new java.util.Date());
-            String query = "INSERT INTO Tweet (TweetID, WriterID, Content, Timestamp) VALUES (?, ?, ?, ?)";
-            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-                preparedStatement.setString(1, tweetId);
-                preparedStatement.setString(2, currentUser);
-                preparedStatement.setString(3, tweetContent);
-                preparedStatement.setString(4, timestamp);
-                preparedStatement.executeUpdate();
-            }
+		JButton okButton = new JButton(okButtonText);
+		okButton.addActionListener(okAction);
 
-            query = "INSERT INTO Timeline (UserID, timestamp, TweetID) VALUES (?, ?, ?)";
-            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-                preparedStatement.setString(1, currentUser);
-                preparedStatement.setString(2, timestamp);
-                preparedStatement.setString(3, tweetId);
-                preparedStatement.executeUpdate();
-            }
+		JButton cancelButton = new JButton("Cancel");
+		cancelButton.addActionListener(e -> dialog.dispose());
 
-            JOptionPane.showMessageDialog(this, "Tweet posted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.add(okButton);
+		buttonPanel.add(cancelButton);
+		dialog.add(buttonPanel, BorderLayout.SOUTH);
 
-            // 트윗이 성공적으로 게시되면 직접 feedArea를 업데이트합니다.
-            displayUserFeed(currentUser);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error posting tweet.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
+		dialog.setSize(300, 150);
+		dialog.setLocationRelativeTo(this);
+		dialog.setVisible(true);
+	}
 
-    private String generateTweetId() {
-        return String.valueOf(System.currentTimeMillis());
-    }
-    //트윗 id 중복 확인
-    private boolean isTweetIdDuplicate(String tweetId) throws SQLException {
-        String query = "SELECT * FROM Tweet WHERE TweetID = ?";
-        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            preparedStatement.setString(1, tweetId);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                return resultSet.next();
-            }
-        }
-    }
-    
-    private void displayUserFeed(String username) {
-        try {
-            String queryUserId = "SELECT UserID FROM User WHERE UserID = ?";
-            try (PreparedStatement preparedStatement = connection.prepareStatement(queryUserId)) {
-                preparedStatement.setString(1, username);
-                try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                    if (!resultSet.next()) {
-                        JOptionPane.showMessageDialog(this, "Current user not found.", "Error", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-                }
-            }
+	// Tweet창 열기
+	private void openTweetDialog() {
+		JTextField tweetContentField = new JTextField(30);
+		JLabel label = new JLabel("write the comment for tweet: ");
 
-            String query = "SELECT t.Content, t.Timestamp FROM Tweet t " +
-                    "JOIN Timeline tl ON t.TweetID = tl.TweetID " +
-                    "WHERE tl.UserID = ? OR tl.UserID IN (SELECT followingID FROM Follower WHERE UserID = ?)";
-            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-                preparedStatement.setString(1, username);
-                preparedStatement.setString(2, username);
-                try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                    StringBuilder feed = new StringBuilder();
-                    while (resultSet.next()) {
-                        String content = resultSet.getString("Content");
-                        String timestamp = resultSet.getString("Timestamp");
-                        feed.append("[").append(timestamp).append("] ").append(content).append("\n");
-                    }
-                    feedArea.setText(feed.toString());
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error displaying feed.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-    
-    //팔로잉 목록 보기
-    private void displayFollowingList() {
-       
-        try {
-            String currentUser = usernameField.getText();
-            String query = "SELECT followingID FROM Follower WHERE UserID = ?";
-            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-                preparedStatement.setString(1, currentUser);
-                try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                    StringBuilder followingList = new StringBuilder("Following List:\n");
-                    while (resultSet.next()) {
-                        String followingID = resultSet.getString("followingID");
-                        followingList.append(followingID).append("\n");
-                    }
-                    JTextArea followingTextArea = new JTextArea(followingList.toString());
-                    followingTextArea.setEditable(false);
-                    JOptionPane.showMessageDialog(this, new JScrollPane(followingTextArea), "Following List", JOptionPane.INFORMATION_MESSAGE);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error displaying following list.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-    //팔로우 할 수 있는 user검색 후 팔로우 기능
-    private void displayFollowableUsers() {
-        try {
-            String query = "SELECT UserID FROM User WHERE UserID != ?";
-            String currentUser = usernameField.getText();
-            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-                preparedStatement.setString(1, currentUser);
-                try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                    JComboBox<String> followableUsersComboBox = new JComboBox<>();
-                    followableUsersComboBox.setEditable(true);
-                    while (resultSet.next()) {
-                        String userID = resultSet.getString("UserID");
-                        followableUsersComboBox.addItem(userID);
-                    }
-                    JOptionPane.showMessageDialog(this, followableUsersComboBox, "Follow User", JOptionPane.INFORMATION_MESSAGE);
-                    String selectedUser = followableUsersComboBox.getSelectedItem().toString();
-                    followUser(selectedUser);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error displaying followable users.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
+		openInputDialog("Write Tweet", "Tweet", e -> {
+			String tweetContent = tweetContentField.getText().trim();
+			if (tweetContent.isEmpty()) {
+				JOptionPane.showMessageDialog(null, "Tweet comment is empty.", "error", JOptionPane.WARNING_MESSAGE);
+				return;
+			}
+			postTweet(tweetContent);
+		}, new String[] { "", "Write for Tweet:" }, new JComponent[] { new JPanel(), tweetContentField });
+	}
 
-    //팔로워 목록 보기
-    private void displayFollowersList() {
-          try {
-               String currentUser = usernameField.getText();
-               String query = "SELECT UserID FROM Follower WHERE followingID = ?";
-               try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-                   preparedStatement.setString(1, currentUser);
-                   try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                       JComboBox<String> followersComboBox = new JComboBox<>();
-                       followersComboBox.setEditable(true);
-                       while (resultSet.next()) {
-                           String followerId = resultSet.getString("UserID");
-                           followersComboBox.addItem(followerId);
-                       }
-                       JOptionPane.showMessageDialog(this, followersComboBox, "Followers List", JOptionPane.INFORMATION_MESSAGE);
-                   }
-               }
-           } catch (SQLException e) {
-               e.printStackTrace();
-               JOptionPane.showMessageDialog(this, "Error displaying followers list.", "Error", JOptionPane.ERROR_MESSAGE);
-           }
-    }
-    //팔로우 유저 확인하기
-    private void followUser(String followingUsername) {
-        try {
-            String currentUser = usernameField.getText();
-            if (!isFollowing(currentUser, followingUsername)) {
-                // Check if the user exists before attempting to follow
-                if (userExists(followingUsername)) {
-                    String query = "INSERT INTO Follower (UserID, followingID) VALUES (?, ?)";
-                    try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-                        preparedStatement.setString(1, currentUser);
-                        preparedStatement.setString(2, followingUsername);
-                        preparedStatement.executeUpdate();
-                    }
-                    JOptionPane.showMessageDialog(this, "You are now following " + followingUsername, "Success", JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    JOptionPane.showMessageDialog(this, "User " + followingUsername + " does not exist.", "Info", JOptionPane.INFORMATION_MESSAGE);
-                }
-            } else {
-                JOptionPane.showMessageDialog(this, "You are already following " + followingUsername, "Info", JOptionPane.INFORMATION_MESSAGE);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error following user.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
+	// Change Passaword창 열기
+	private void openChangePasswordDialog() {
+		JPasswordField currentPasswordField = new JPasswordField(10);
+		JPasswordField newPasswordField = new JPasswordField(10);
+		JPasswordField confirmPasswordField = new JPasswordField(10);
 
-    // Helper method to check if a user exists
-    private boolean userExists(String username) throws SQLException {
-        String query = "SELECT * FROM User WHERE UserID = ?";
-        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            preparedStatement.setString(1, username);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                return resultSet.next();
-            }
-        }
-    }
+		openInputDialog("Change Password", "Change Password", e -> {
+			String currentPassword = new String(currentPasswordField.getPassword());
+			String newPassword = new String(newPasswordField.getPassword());
+			String confirmPassword = new String(confirmPasswordField.getPassword());
 
+			if (!checkLogin(usernameField.getText(), currentPassword)) {
+				JOptionPane.showMessageDialog(null, "현재 비밀번호가 일치하지 않습니다.", "입력 오류", JOptionPane.WARNING_MESSAGE);
+				return;
+			}
 
-    private boolean isFollowing(String followerId, String followingId) throws SQLException {
-        String query = "SELECT * FROM Follower WHERE UserID = ? AND followingID = ?";
-        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            preparedStatement.setString(1, followerId);
-            preparedStatement.setString(2, followingId);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                return resultSet.next();
-            }
-        }
-    }
-    
+			if (!newPassword.equals(confirmPassword)) {
+				JOptionPane.showMessageDialog(null, "새 비밀번호와 확인 비밀번호가 일치하지 않습니다.", "입력 오류",
+						JOptionPane.WARNING_MESSAGE);
+				return;
+			}
 
-    //비밀번호 업데이트 메서드
-    private void updatePassword(String userId, String newPassword) {
-        try {
-            String query = "UPDATE User SET Password = ? WHERE UserID = ?";
-            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-                preparedStatement.setString(1, newPassword);
-                preparedStatement.setString(2, userId);
-                preparedStatement.executeUpdate();
-            }
-            JOptionPane.showMessageDialog(this, "비밀번호가 성공적으로 변경되었습니다.", "Success", JOptionPane.INFORMATION_MESSAGE);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "비밀번호 변경 중 오류가 발생했습니다.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-    
-    //팔로우 메서드
-   public static void Follow(String userID, String followID) {                             // 유저1이 유저2를 팔로우하는 상황 가정
-      String insertFollowingQuery = "INSERT INTO Following (UserID, FollowerID) VALUES (?, ?)"; // 유저1의 팔로잉 목록에 유저2를 업데이트
-      String insertFollowerQuery = "INSERT INTO Follower (UserID, FollowingID) VALUES (?, ?)";  // 유저2의 팔로워 목록에 유저1을 업데이트
-      try {
-         PreparedStatement preparedStatement = connection.prepareStatement(insertFollowingQuery);
-         preparedStatement.setString(1, userID);
-         preparedStatement.setString(2, followID);
-         PreparedStatement preparedStatement2 = connection.prepareStatement(insertFollowerQuery);
-         preparedStatement2.setString(1, followID);
-         preparedStatement2.setString(2, userID);
-         preparedStatement.executeUpdate();
-         preparedStatement2.executeUpdate();
-         System.out.println(userID + "(이)가 " + followID +"(을)를 팔로우했습니다.");
-      } catch (SQLException e) {
-         e.printStackTrace();
-         System.err.println("팔로우에 실패했습니다.");
-      }
-   }
-   
-   public static void FollowingList(String UserID) { // 유저의 팔로잉 목록 확인
-      String selectFollowingQuery = "SELECT FollowerID FROM Following WHERE UserID=?";
-      try {
-         PreparedStatement preparedStatement = connection.prepareStatement(selectFollowingQuery);
-         preparedStatement.setString(1, UserID);
-         ResultSet resultSet = preparedStatement.executeQuery();
+			updatePassword(usernameField.getText(), newPassword);
+		}, new String[] { "Current Password:", "New Password:", "Confirm New Password:" },
+				new JComponent[] { currentPasswordField, newPasswordField, confirmPasswordField });
+	}
 
-         if (resultSet.next()) {
-            System.out.println(UserID + "의 팔로잉 목록");
-            do {
-               String FollowerID = resultSet.getString("FollowerID");
-               System.out.println(FollowerID);
-            } while(resultSet.next());
-         } else {
-            System.out.println(UserID + "사용자의 팔로잉 목록이 존재하지 않습니다.");
-         }
-      } catch (SQLException e) {
-         e.printStackTrace();
-         System.err.println("팔로잉 목록 오류가 발생했습니다.");
-      }
-   }
-   
-   public static void FollowerList(String UserID) { // 유저의 팔로워 목록 확인
-      String selectFollowerQuery = "SELECT FollowingID FROM Follower WHERE UserID=?";
-      try {
-         PreparedStatement preparedStatement = connection.prepareStatement(selectFollowerQuery);
-         preparedStatement.setString(1, UserID);
-         ResultSet resultSet = preparedStatement.executeQuery();
+	private void postTweet(String tweetContent) {
+		try {
+			if (!isLoggedIn) {
+				JOptionPane.showMessageDialog(this, "로그인 후에 트윗할 수 있습니다.", "로그인 필요", JOptionPane.WARNING_MESSAGE);
+				return;
+			}
+			System.out.println(tweetContent);
+			String currentUser = usernameField.getText();
+			String tweetId = generateTweetId();
+			// TweetID 중복 확인
+			while (isTweetIdDuplicate(tweetId)) {
+				tweetId = generateTweetId();
+			}
+			String timestamp = new java.text.SimpleDateFormat("yyyy.MM.dd.HH:mm").format(new java.util.Date());
+			String query = "INSERT INTO Tweet (TweetID, WriterID, Content, Timestamp) VALUES (?, ?, ?, ?)";
+			try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+				preparedStatement.setString(1, tweetId);
+				preparedStatement.setString(2, currentUser);
+				preparedStatement.setString(3, tweetContent);
+				preparedStatement.setString(4, timestamp);
+				preparedStatement.executeUpdate();
+			}
 
-         if (resultSet.next()) {
-            System.out.println(UserID + "의 팔로워 목록");
-            do {
-               String FollowingID = resultSet.getString("FollowingID");
-               System.out.println(FollowingID);
-            } while(resultSet.next());
-         } else {
-            System.out.println(UserID + "사용자의 팔로워 목록이 존재하지 않습니다.");
-         }
-      } catch (SQLException e) {
-         e.printStackTrace();
-         System.err.println("팔로워 목록 오류가 발생했습니다.");
-      }
-   }
-    //버튼 크기 설정
-    private void setButtonSize(JButton button) {
-        Dimension buttonSize = new Dimension(200, 80); // 원하는 크기로 조절
-        button.setPreferredSize(buttonSize);
-        button.setMaximumSize(buttonSize);
-        button.setMinimumSize(buttonSize);
-    }
+			query = "INSERT INTO Timeline (UserID, timestamp, TweetID) VALUES (?, ?, ?)";
+			try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+				preparedStatement.setString(1, currentUser);
+				preparedStatement.setString(2, timestamp);
+				preparedStatement.setString(3, tweetId);
+				preparedStatement.executeUpdate();
+			}
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            SimpleTwitterApp app = new SimpleTwitterApp();
-            app.setSize(500, 400);
-            app.setTitle("Twitter");
-            app.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            app.setVisible(true);
-        });
-    }
+			JOptionPane.showMessageDialog(this, "Tweet posted successfully.", "Success",
+					JOptionPane.INFORMATION_MESSAGE);
+
+			// 트윗이 성공적으로 게시되면 직접 feedArea를 업데이트합니다.
+			displayUserFeed(currentUser);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(this, "Error posting tweet.", "Error", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private String generateTweetId() {
+		return String.valueOf(System.currentTimeMillis());
+	}
+
+	// 트윗 id 중복 확인
+	private boolean isTweetIdDuplicate(String tweetId) throws SQLException {
+		String query = "SELECT * FROM Tweet WHERE TweetID = ?";
+		try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+			preparedStatement.setString(1, tweetId);
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				return resultSet.next();
+			}
+		}
+	}
+
+	//2023.11.29 박건우 추가
+	//UserFeed에 유저와 follow 중인 사람의 트윗을 순서대로 출력하는 메서드
+	private void displayUserFeed(String userId) {
+		// Userid가 유효한 값인지 확인하는 함수 필요
+
+		TreeMap<String, String> tweetsMap = new TreeMap<>();
+		tweetsMap = Twitter.displayUserAndFollowingTweets(userId);
+
+		// error가 발생했을 경우 처리 구문
+		if (tweetsMap.containsKey("0")) {
+			JOptionPane.showMessageDialog(this, tweetsMap.get("0"), "Error", JOptionPane.ERROR_MESSAGE);
+		} else if (tweetsMap.containsKey("-1")) {
+			JOptionPane.showMessageDialog(this, tweetsMap.get("-1"), "Error", JOptionPane.ERROR_MESSAGE);
+		}
+
+		//Tweet 내용을 최신순으로 출력
+		for (String tweet : tweetsMap.descendingMap().values()) {
+			feedArea.append(tweet+"\n");
+		}
+	}
+
+	// 팔로잉 목록 보기
+	private void displayFollowingList() {
+
+		try {
+			String currentUser = usernameField.getText();
+			String query = "SELECT followingID FROM Follower WHERE UserID = ?";
+			try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+				preparedStatement.setString(1, currentUser);
+				try (ResultSet resultSet = preparedStatement.executeQuery()) {
+					StringBuilder followingList = new StringBuilder("Following List:\n");
+					while (resultSet.next()) {
+						String followingID = resultSet.getString("followingID");
+						followingList.append(followingID).append("\n");
+					}
+					JTextArea followingTextArea = new JTextArea(followingList.toString());
+					followingTextArea.setEditable(false);
+					JOptionPane.showMessageDialog(this, new JScrollPane(followingTextArea), "Following List",
+							JOptionPane.INFORMATION_MESSAGE);
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(this, "Error displaying following list.", "Error", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	// 팔로우 할 수 있는 user검색 후 팔로우 기능
+	private void displayFollowableUsers() {
+		try {
+			String query = "SELECT UserID FROM User WHERE UserID != ?";
+			String currentUser = usernameField.getText();
+			try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+				preparedStatement.setString(1, currentUser);
+				try (ResultSet resultSet = preparedStatement.executeQuery()) {
+					JComboBox<String> followableUsersComboBox = new JComboBox<>();
+					followableUsersComboBox.setEditable(true);
+					while (resultSet.next()) {
+						String userID = resultSet.getString("UserID");
+						followableUsersComboBox.addItem(userID);
+					}
+					JOptionPane.showMessageDialog(this, followableUsersComboBox, "Follow User",
+							JOptionPane.INFORMATION_MESSAGE);
+					String selectedUser = followableUsersComboBox.getSelectedItem().toString();
+					followUser(selectedUser);
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(this, "Error displaying followable users.", "Error",
+					JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	// 팔로워 목록 보기
+	private void displayFollowersList() {
+		try {
+			String currentUser = usernameField.getText();
+			String query = "SELECT UserID FROM Follower WHERE followingID = ?";
+			try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+				preparedStatement.setString(1, currentUser);
+				try (ResultSet resultSet = preparedStatement.executeQuery()) {
+					JComboBox<String> followersComboBox = new JComboBox<>();
+					followersComboBox.setEditable(true);
+					while (resultSet.next()) {
+						String followerId = resultSet.getString("UserID");
+						followersComboBox.addItem(followerId);
+					}
+					JOptionPane.showMessageDialog(this, followersComboBox, "Followers List",
+							JOptionPane.INFORMATION_MESSAGE);
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(this, "Error displaying followers list.", "Error", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	// 팔로우 유저 확인하기
+	private void followUser(String followingUsername) {
+		try {
+			String currentUser = usernameField.getText();
+			if (!isFollowing(currentUser, followingUsername)) {
+				// Check if the user exists before attempting to follow
+				if (userExists(followingUsername)) {
+					String query = "INSERT INTO Follower (UserID, followingID) VALUES (?, ?)";
+					try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+						preparedStatement.setString(1, currentUser);
+						preparedStatement.setString(2, followingUsername);
+						preparedStatement.executeUpdate();
+					}
+					JOptionPane.showMessageDialog(this, "You are now following " + followingUsername, "Success",
+							JOptionPane.INFORMATION_MESSAGE);
+				} else {
+					JOptionPane.showMessageDialog(this, "User " + followingUsername + " does not exist.", "Info",
+							JOptionPane.INFORMATION_MESSAGE);
+				}
+			} else {
+				JOptionPane.showMessageDialog(this, "You are already following " + followingUsername, "Info",
+						JOptionPane.INFORMATION_MESSAGE);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(this, "Error following user.", "Error", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	// Helper method to check if a user exists
+	private boolean userExists(String username) throws SQLException {
+		String query = "SELECT * FROM User WHERE UserID = ?";
+		try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+			preparedStatement.setString(1, username);
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				return resultSet.next();
+			}
+		}
+	}
+
+	private boolean isFollowing(String followerId, String followingId) throws SQLException {
+		String query = "SELECT * FROM Follower WHERE UserID = ? AND followingID = ?";
+		try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+			preparedStatement.setString(1, followerId);
+			preparedStatement.setString(2, followingId);
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				return resultSet.next();
+			}
+		}
+	}
+
+	// 비밀번호 업데이트 메서드
+	private void updatePassword(String userId, String newPassword) {
+		try {
+			String query = "UPDATE User SET Password = ? WHERE UserID = ?";
+			try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+				preparedStatement.setString(1, newPassword);
+				preparedStatement.setString(2, userId);
+				preparedStatement.executeUpdate();
+			}
+			JOptionPane.showMessageDialog(this, "비밀번호가 성공적으로 변경되었습니다.", "Success", JOptionPane.INFORMATION_MESSAGE);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(this, "비밀번호 변경 중 오류가 발생했습니다.", "Error", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	// 팔로우 메서드
+	public static void Follow(String userID, String followID) { // 유저1이 유저2를 팔로우하는 상황 가정
+		String insertFollowingQuery = "INSERT INTO Following (UserID, FollowerID) VALUES (?, ?)"; // 유저1의 팔로잉 목록에 유저2를
+																									// 업데이트
+		String insertFollowerQuery = "INSERT INTO Follower (UserID, FollowingID) VALUES (?, ?)"; // 유저2의 팔로워 목록에 유저1을
+																									// 업데이트
+		try {
+			PreparedStatement preparedStatement = connection.prepareStatement(insertFollowingQuery);
+			preparedStatement.setString(1, userID);
+			preparedStatement.setString(2, followID);
+			PreparedStatement preparedStatement2 = connection.prepareStatement(insertFollowerQuery);
+			preparedStatement2.setString(1, followID);
+			preparedStatement2.setString(2, userID);
+			preparedStatement.executeUpdate();
+			preparedStatement2.executeUpdate();
+			System.out.println(userID + "(이)가 " + followID + "(을)를 팔로우했습니다.");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.err.println("팔로우에 실패했습니다.");
+		}
+	}
+
+	public static void FollowingList(String UserID) { // 유저의 팔로잉 목록 확인
+		String selectFollowingQuery = "SELECT FollowerID FROM Following WHERE UserID=?";
+		try {
+			PreparedStatement preparedStatement = connection.prepareStatement(selectFollowingQuery);
+			preparedStatement.setString(1, UserID);
+			ResultSet resultSet = preparedStatement.executeQuery();
+
+			if (resultSet.next()) {
+				System.out.println(UserID + "의 팔로잉 목록");
+				do {
+					String FollowerID = resultSet.getString("FollowerID");
+					System.out.println(FollowerID);
+				} while (resultSet.next());
+			} else {
+				System.out.println(UserID + "사용자의 팔로잉 목록이 존재하지 않습니다.");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.err.println("팔로잉 목록 오류가 발생했습니다.");
+		}
+	}
+
+	public static void FollowerList(String UserID) { // 유저의 팔로워 목록 확인
+		String selectFollowerQuery = "SELECT FollowingID FROM Follower WHERE UserID=?";
+		try {
+			PreparedStatement preparedStatement = connection.prepareStatement(selectFollowerQuery);
+			preparedStatement.setString(1, UserID);
+			ResultSet resultSet = preparedStatement.executeQuery();
+
+			if (resultSet.next()) {
+				System.out.println(UserID + "의 팔로워 목록");
+				do {
+					String FollowingID = resultSet.getString("FollowingID");
+					System.out.println(FollowingID);
+				} while (resultSet.next());
+			} else {
+				System.out.println(UserID + "사용자의 팔로워 목록이 존재하지 않습니다.");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.err.println("팔로워 목록 오류가 발생했습니다.");
+		}
+	}
+
+	// 버튼 크기 설정
+	private void setButtonSize(JButton button) {
+		Dimension buttonSize = new Dimension(200, 80); // 원하는 크기로 조절
+		button.setPreferredSize(buttonSize);
+		button.setMaximumSize(buttonSize);
+		button.setMinimumSize(buttonSize);
+	}
+
+	public static void main(String[] args) {
+		SwingUtilities.invokeLater(() -> {
+			SimpleTwitterApp app = new SimpleTwitterApp();
+			app.setSize(500, 400);
+			app.setTitle("Twitter");
+			app.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			app.setVisible(true);
+		});
+	}
 }
