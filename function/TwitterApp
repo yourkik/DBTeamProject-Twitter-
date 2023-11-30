@@ -35,13 +35,15 @@ public class SimpleTwitterApp extends JFrame {
 
         JPanel userPanel = new JPanel();
         userPanel.setBackground(new Color(126, 210, 255)); //배경 색상
+        
+        JButton loginButton = new JButton("Login");
+        loginButton.setBackground(new Color(255, 255, 255)); //버튼 색상
+        loginButton.setForeground(Color.BLUE); //텍스트 색상
+        
         if (!isLoggedIn) {
             //로그인 필드 및 버튼
             JTextField loginIdField = new JTextField(10);
             JPasswordField loginPasswordField = new JPasswordField(10);
-            JButton loginButton = new JButton("Login");
-            loginButton.setBackground(new Color(255, 255, 255)); //버튼 색상
-            loginButton.setForeground(Color.BLUE); //텍스트 색상
 
             userPanel.add(new JLabel("UserID:"));
             userPanel.add(loginIdField);
@@ -58,13 +60,51 @@ public class SimpleTwitterApp extends JFrame {
                     String inputId = loginIdField.getText();
                     String inputPassword = new String(loginPasswordField.getPassword());
 
+                    if (inputId.isEmpty() || inputPassword.isEmpty()) {
+                        //아이디 또는 비밀번호가 비어있으면 오류 메시지 표시
+                        JOptionPane.showMessageDialog(SimpleTwitterApp.this, "아이디와 비밀번호를 모두 입력하세요.", "입력 오류", JOptionPane.ERROR_MESSAGE);
+                        return; //로그인 로직 수행하지 않고 종료
+                    }
                     if (checkLogin(inputId, inputPassword)) {
                         isLoggedIn = true;
-                        userid = inputId;
                         JOptionPane.showMessageDialog(SimpleTwitterApp.this, "로그인 되었습니다.", "로그인 성공", JOptionPane.INFORMATION_MESSAGE);
-                        loginButton.setText("Logout");
-                        //로그인 사용자의 타임라인 표시
+
+                        //로그인 상태에 따라 컴포넌트를 숨기거나 보이게 설정
+                        loginIdField.setVisible(false);
+                        loginPasswordField.setVisible(false);
+                        loginButton.setVisible(false);
+
+                        //로그아웃 버튼 추가
+                        JButton logoutButton = new JButton("Logout");
+                        userPanel.add(logoutButton);
+
+                        //로그아웃 버튼 액션 처리
+                        logoutButton.addActionListener(new ActionListener() {
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                isLoggedIn = false;
+                                JOptionPane.showMessageDialog(SimpleTwitterApp.this, "로그아웃 되었습니다.", "로그아웃", JOptionPane.INFORMATION_MESSAGE);
+                                //로그아웃 시 피드 영역을 비우기
+                                feedArea.setText("");
+                                //로그인 상태에 따라 컴포넌트를 숨기거나 보이게 설정
+                                loginIdField.setVisible(true);
+                                loginPasswordField.setVisible(true);
+                                loginButton.setVisible(true);
+
+                                //로그아웃 버튼 제거
+                                userPanel.remove(logoutButton);
+
+                                //변경 사항을 반영하기 위해 userPanel 다시 그리기
+                                userPanel.revalidate();
+                                userPanel.repaint();
+                            }
+                        });
+
+                        //로그인 성공 후 사용자 피드 표시
                         displayUserFeed(inputId);
+                        //로그인 성공 후 필드 비우기
+                        loginIdField.setText("");
+                        loginPasswordField.setText("");
                     } else {
                         JOptionPane.showMessageDialog(SimpleTwitterApp.this, "아이디 또는 비밀번호가 일치하지 않습니다.", "로그인 실패", JOptionPane.ERROR_MESSAGE);
                     }
@@ -80,10 +120,11 @@ public class SimpleTwitterApp extends JFrame {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     isLoggedIn = false;
-                    userid = null;
                     JOptionPane.showMessageDialog(SimpleTwitterApp.this, "로그아웃 되었습니다.", "로그아웃", JOptionPane.INFORMATION_MESSAGE);
                     //로그아웃 시 피드 영역을 비우기
                     feedArea.setText("");
+                    //로그인 버튼 텍스트를 "Login"으로 변경
+                    loginButton.setText("Login");
                 }
             });
         }
