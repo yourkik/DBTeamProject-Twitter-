@@ -71,7 +71,7 @@ public class SimpleTwitterApp extends JFrame {
                         JOptionPane.showMessageDialog(SimpleTwitterApp.this, "아이디와 비밀번호를 모두 입력하세요.", "입력 오류", JOptionPane.ERROR_MESSAGE);
                         return; //로그인 로직 수행하지 않고 종료
                     }
-                    if (checkLogin(inputId, inputPassword)) {
+                    if (Twitter.checkLogin(inputId, inputPassword)) {
                         isLoggedIn = true;
                         JOptionPane.showMessageDialog(SimpleTwitterApp.this, "로그인 되었습니다.", "로그인 성공", JOptionPane.INFORMATION_MESSAGE);
 
