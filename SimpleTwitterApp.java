@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.*;
 import java.util.TreeMap;
+import java.util.ArrayList;
 
 public class SimpleTwitterApp extends JFrame {
 
@@ -339,6 +340,7 @@ public class SimpleTwitterApp extends JFrame {
 			}
 			if(!twitter.updatePassword(loginUserId, newPassword)) {
 				JOptionPane.showMessageDialog(this, "비밀번호 변경 중 오류가 발생했습니다.", "Error", JOptionPane.ERROR_MESSAGE);
+				return;
 			}
 			JOptionPane.showMessageDialog(this, "비밀번호가 성공적으로 변경되었습니다.", "Success", JOptionPane.INFORMATION_MESSAGE);
 		}, new String[] { "Current Password:", "New Password:", "Confirm New Password:" },
@@ -425,195 +427,79 @@ public class SimpleTwitterApp extends JFrame {
 
 	// 팔로잉 목록 보기
 	private void displayFollowingList() {
-
-		try {
-			String currentUser = usernameField.getText();
-			String query = "SELECT followingID FROM Follower WHERE UserID = ?";
-			try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-				preparedStatement.setString(1, currentUser);
-				try (ResultSet resultSet = preparedStatement.executeQuery()) {
-					StringBuilder followingList = new StringBuilder("Following List:\n");
-					while (resultSet.next()) {
-						String followingID = resultSet.getString("followingID");
-						followingList.append(followingID).append("\n");
-					}
-					JTextArea followingTextArea = new JTextArea(followingList.toString());
-					followingTextArea.setEditable(false);
-					JOptionPane.showMessageDialog(this, new JScrollPane(followingTextArea), "Following List",
-							JOptionPane.INFORMATION_MESSAGE);
-				}
+		ArrayList<String> List = twitter.FollowingList(loginUserId);
+		
+		StringBuilder followingList = new StringBuilder("Following List:\n");
+		if(List.size() != 0) {
+			for(int i = 0; i < List.size(); i++) {
+				followingList.append(List.get(i)).append("\n");
 			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			JOptionPane.showMessageDialog(this, "Error displaying following list.", "Error", JOptionPane.ERROR_MESSAGE);
+		} else {
+			JOptionPane.showMessageDialog(this, "Your following list does not exist.", "Info",
+					JOptionPane.INFORMATION_MESSAGE);
+			return;
 		}
+		JTextArea followingTextArea = new JTextArea(followingList.toString());
+		followingTextArea.setEditable(false);
+		JOptionPane.showMessageDialog(this, new JScrollPane(followingTextArea), "Following List",
+				JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	// 팔로우 할 수 있는 user검색 후 팔로우 기능
 	private void displayFollowableUsers() {
-		try {
-			String query = "SELECT UserID FROM User WHERE UserID != ?";
-			String currentUser = usernameField.getText();
-			try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-				preparedStatement.setString(1, currentUser);
-				try (ResultSet resultSet = preparedStatement.executeQuery()) {
-					JComboBox<String> followableUsersComboBox = new JComboBox<>();
-					followableUsersComboBox.setEditable(true);
-					while (resultSet.next()) {
-						String userID = resultSet.getString("UserID");
-						followableUsersComboBox.addItem(userID);
-					}
-					JOptionPane.showMessageDialog(this, followableUsersComboBox, "Follow User",
-							JOptionPane.INFORMATION_MESSAGE);
-					String selectedUser = followableUsersComboBox.getSelectedItem().toString();
-					followUser(selectedUser);
-				}
+		ArrayList<String> List = twitter.AllUserList(loginUserId);
+		
+		JComboBox<String> followableUsersComboBox = new JComboBox<>();
+		followableUsersComboBox.setEditable(true);
+		if(List.size() != 0) {
+			for(int i = 0; i < List.size(); i++) {
+				followableUsersComboBox.addItem(List.get(i));
 			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			JOptionPane.showMessageDialog(this, "Error displaying followable users.", "Error",
-					JOptionPane.ERROR_MESSAGE);
 		}
+		JOptionPane.showMessageDialog(this, followableUsersComboBox, "Follow User",
+				JOptionPane.INFORMATION_MESSAGE);
+		String selectedUser = followableUsersComboBox.getSelectedItem().toString();
+		followUser(selectedUser);
+			
 	}
 
 	// 팔로워 목록 보기
 	private void displayFollowersList() {
-		try {
-			String currentUser = usernameField.getText();
-			String query = "SELECT UserID FROM Follower WHERE followingID = ?";
-			try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-				preparedStatement.setString(1, currentUser);
-				try (ResultSet resultSet = preparedStatement.executeQuery()) {
-					JComboBox<String> followersComboBox = new JComboBox<>();
-					followersComboBox.setEditable(true);
-					while (resultSet.next()) {
-						String followerId = resultSet.getString("UserID");
-						followersComboBox.addItem(followerId);
-					}
-					JOptionPane.showMessageDialog(this, followersComboBox, "Followers List",
-							JOptionPane.INFORMATION_MESSAGE);
-				}
+		ArrayList<String> List = twitter.FollowerList(loginUserId);
+		
+		StringBuilder followerList = new StringBuilder("Follower List:\n");
+		if(List.size() != 0) {
+			for(int i = 0; i < List.size(); i++) {
+				followerList.append(List.get(i)).append("\n");
 			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			JOptionPane.showMessageDialog(this, "Error displaying followers list.", "Error", JOptionPane.ERROR_MESSAGE);
+		} else {
+			JOptionPane.showMessageDialog(this, "Your follower list does not exist.", "Info",
+					JOptionPane.INFORMATION_MESSAGE);
+			return;
 		}
+		JTextArea followerTextArea = new JTextArea(followerList.toString());
+		followerTextArea.setEditable(false);
+		JOptionPane.showMessageDialog(this, new JScrollPane(followerTextArea), "Following List",
+				JOptionPane.INFORMATION_MESSAGE);
 	}
 
-	// 팔로우 유저 확인하기
-	private void followUser(String followingUsername) {
-		try {
-			String currentUser = usernameField.getText();
-			if (!isFollowing(currentUser, followingUsername)) {
-				// Check if the user exists before attempting to follow
-				if (userExists(followingUsername)) {
-					String query = "INSERT INTO Follower (UserID, followingID) VALUES (?, ?)";
-					try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-						preparedStatement.setString(1, currentUser);
-						preparedStatement.setString(2, followingUsername);
-						preparedStatement.executeUpdate();
-					}
-					JOptionPane.showMessageDialog(this, "You are now following " + followingUsername, "Success",
-							JOptionPane.INFORMATION_MESSAGE);
-				} else {
-					JOptionPane.showMessageDialog(this, "User " + followingUsername + " does not exist.", "Info",
-							JOptionPane.INFORMATION_MESSAGE);
-				}
-			} else {
-				JOptionPane.showMessageDialog(this, "You are already following " + followingUsername, "Info",
+	// 팔로우 유저
+	private void followUser(String followerUser) {
+		if (!twitter.isFollowing(loginUserId, followerUser)) {
+			if (twitter.isUserIDExists(followerUser)) {
+				twitter.Follow(loginUserId, followerUser);
+				JOptionPane.showMessageDialog(this, "You are now following " + followerUser, "Success",
 						JOptionPane.INFORMATION_MESSAGE);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			JOptionPane.showMessageDialog(this, "Error following user.", "Error", JOptionPane.ERROR_MESSAGE);
-		}
-	}
-
-	// Helper method to check if a user exists
-	private boolean userExists(String username) throws SQLException {
-		String query = "SELECT * FROM User WHERE UserID = ?";
-		try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-			preparedStatement.setString(1, username);
-			try (ResultSet resultSet = preparedStatement.executeQuery()) {
-				return resultSet.next();
-			}
-		}
-	}
-
-	private boolean isFollowing(String followerId, String followingId) throws SQLException {
-		String query = "SELECT * FROM Follower WHERE UserID = ? AND followingID = ?";
-		try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-			preparedStatement.setString(1, followerId);
-			preparedStatement.setString(2, followingId);
-			try (ResultSet resultSet = preparedStatement.executeQuery()) {
-				return resultSet.next();
-			}
-		}
-	}
-
-	// 팔로우 메서드
-	public static void Follow(String userID, String followID) { // 유저1이 유저2를 팔로우하는 상황 가정
-		String insertFollowingQuery = "INSERT INTO Following (UserID, FollowerID) VALUES (?, ?)"; // 유저1의 팔로잉 목록에 유저2를
-																									// 업데이트
-		String insertFollowerQuery = "INSERT INTO Follower (UserID, FollowingID) VALUES (?, ?)"; // 유저2의 팔로워 목록에 유저1을
-																									// 업데이트
-		try {
-			PreparedStatement preparedStatement = connection.prepareStatement(insertFollowingQuery);
-			preparedStatement.setString(1, userID);
-			preparedStatement.setString(2, followID);
-			PreparedStatement preparedStatement2 = connection.prepareStatement(insertFollowerQuery);
-			preparedStatement2.setString(1, followID);
-			preparedStatement2.setString(2, userID);
-			preparedStatement.executeUpdate();
-			preparedStatement2.executeUpdate();
-			System.out.println(userID + "(이)가 " + followID + "(을)를 팔로우했습니다.");
-		} catch (SQLException e) {
-			e.printStackTrace();
-			System.err.println("팔로우에 실패했습니다.");
-		}
-	}
-
-	public static void FollowingList(String UserID) { // 유저의 팔로잉 목록 확인
-		String selectFollowingQuery = "SELECT FollowerID FROM Following WHERE UserID=?";
-		try {
-			PreparedStatement preparedStatement = connection.prepareStatement(selectFollowingQuery);
-			preparedStatement.setString(1, UserID);
-			ResultSet resultSet = preparedStatement.executeQuery();
-
-			if (resultSet.next()) {
-				System.out.println(UserID + "의 팔로잉 목록");
-				do {
-					String FollowerID = resultSet.getString("FollowerID");
-					System.out.println(FollowerID);
-				} while (resultSet.next());
+				return;
 			} else {
-				System.out.println(UserID + "사용자의 팔로잉 목록이 존재하지 않습니다.");
+				JOptionPane.showMessageDialog(this, "User " + followerUser + " does not exist.", "Info",
+						JOptionPane.INFORMATION_MESSAGE);
+				return;
 			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			System.err.println("팔로잉 목록 오류가 발생했습니다.");
-		}
-	}
-
-	public static void FollowerList(String UserID) { // 유저의 팔로워 목록 확인
-		String selectFollowerQuery = "SELECT FollowingID FROM Follower WHERE UserID=?";
-		try {
-			PreparedStatement preparedStatement = connection.prepareStatement(selectFollowerQuery);
-			preparedStatement.setString(1, UserID);
-			ResultSet resultSet = preparedStatement.executeQuery();
-
-			if (resultSet.next()) {
-				System.out.println(UserID + "의 팔로워 목록");
-				do {
-					String FollowingID = resultSet.getString("FollowingID");
-					System.out.println(FollowingID);
-				} while (resultSet.next());
-			} else {
-				System.out.println(UserID + "사용자의 팔로워 목록이 존재하지 않습니다.");
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			System.err.println("팔로워 목록 오류가 발생했습니다.");
+		} else {
+			JOptionPane.showMessageDialog(this, "You are already following " + followerUser, "Info",
+					JOptionPane.INFORMATION_MESSAGE);
+			return;
 		}
 	}
 

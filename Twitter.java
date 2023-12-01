@@ -187,47 +187,77 @@ public class Twitter {
 		}
 	}
 	
-	public static void FollowingList(String UserID) { // 유저의 팔로잉 목록 확인
+	public static ArrayList AllUserList(String userID) {
+		String query = "SELECT UserID FROM User WHERE UserID != ?";
+		ArrayList<String> UserList = new ArrayList<>();
+		try {
+			PreparedStatement preparedStatement = con.prepareStatement(query);
+			preparedStatement.setString(1, userID);
+			ResultSet resultSet = preparedStatement.executeQuery();
+			
+			while (resultSet.next()) {
+				String userId = resultSet.getString("UserID");
+				UserList.add(userId);
+			}
+			return UserList;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.err.println("오류가 발생했습니다.");
+			return UserList;
+		}
+	}
+	
+	public static boolean isFollowing(String followingUser, String followerUser) {
+		String query = "SELECT * FROM Following WHERE UserID = ? AND followerID = ?";
+		try (PreparedStatement preparedStatement = con.prepareStatement(query)) {
+			preparedStatement.setString(1, followingUser);
+			preparedStatement.setString(2, followerUser);
+			ResultSet resultSet = preparedStatement.executeQuery();
+			return resultSet.next();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.err.println("오류가 발생했습니다.");
+			return false;
+		}
+	}
+	
+	public static ArrayList FollowingList(String UserID) { // 유저의 팔로잉 목록 확인
 		String selectFollowingQuery = "SELECT FollowerID FROM Following WHERE UserID=?";
+		ArrayList<String> followingList = new ArrayList<>();
 		try {
 			PreparedStatement preparedStatement = con.prepareStatement(selectFollowingQuery);
 			preparedStatement.setString(1, UserID);
 			ResultSet resultSet = preparedStatement.executeQuery();
 
-			if (resultSet.next()) {
-				System.out.println(UserID + "의 팔로잉 목록");
-				do {
-					String FollowerID = resultSet.getString("FollowerID");
-					System.out.println(FollowerID);
-				} while(resultSet.next());
-			} else {
-				System.out.println(UserID + "사용자의 팔로잉 목록이 존재하지 않습니다.");
+			while (resultSet.next()) {
+				String FollowerID = resultSet.getString("FollowerID");
+				followingList.add(FollowerID);
 			}
+			return followingList;
 		} catch (SQLException e) {
 			e.printStackTrace();
 			System.err.println("팔로잉 목록 오류가 발생했습니다.");
+			return followingList;
 		}
 	}
 	
-	public static void FollowerList(String UserID) { // 유저의 팔로워 목록 확인
+	public static ArrayList FollowerList(String UserID) { // 유저의 팔로워 목록 확인
 		String selectFollowerQuery = "SELECT FollowingID FROM Follower WHERE UserID=?";
+		ArrayList<String> followerList = new ArrayList<>();
 		try {
 			PreparedStatement preparedStatement = con.prepareStatement(selectFollowerQuery);
 			preparedStatement.setString(1, UserID);
 			ResultSet resultSet = preparedStatement.executeQuery();
 
-			if (resultSet.next()) {
-				System.out.println(UserID + "의 팔로워 목록");
-				do {
-					String FollowingID = resultSet.getString("FollowingID");
-					System.out.println(FollowingID);
-				} while(resultSet.next());
-			} else {
-				System.out.println(UserID + "사용자의 팔로워 목록이 존재하지 않습니다.");
+			while (resultSet.next()) {
+				String FollowingID = resultSet.getString("FollowingID");
+				followerList.add(FollowingID);
 			}
+			return followerList;
 		} catch (SQLException e) {
 			e.printStackTrace();
-			System.err.println("팔로워 목록 오류가 발생했습니다.");
+			System.err.println("팔로워 목록 오류가 발생했습니다.");			
+			return followerList;
 		}
 	}
 	
