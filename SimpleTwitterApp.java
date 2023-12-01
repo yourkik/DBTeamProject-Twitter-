@@ -82,6 +82,8 @@ public class SimpleTwitterApp extends JFrame {
 
                         //로그아웃 버튼 추가
                         JButton logoutButton = new JButton("Logout");
+			logoutButton.setBackground(new Color(255, 255, 255)); //버튼 색상
+            		logoutButton.setForeground(Color.BLUE); //텍스트 색상
                         userPanel.add(logoutButton);
 
                         //로그아웃 버튼 액션 처리
