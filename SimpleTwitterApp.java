@@ -211,6 +211,20 @@ public class SimpleTwitterApp extends JFrame {
 		tweetActionButton.setBackground(new Color(255, 255, 255));
 		tweetActionButton.setForeground(Color.BLUE);
 
+		//comment 버튼 추가
+        	JButton commentButton = new JButton("Comment");
+        	setButtonSize(commentButton);
+        	commentButton.addActionListener(new ActionListener() {
+           		@Override
+          		public void actionPerformed(ActionEvent e) {
+                	//comment 다이얼로그를 열고 댓글을 처리하는 로직 수행
+                	openCommentDialog();
+            		}
+        	});
+        	feedLeftPanel.add(commentButton);
+        	commentButton.setBackground(new Color(255, 255, 255));
+        	commentButton.setForeground(Color.BLUE);
+
 		// 전체 레이아웃 구성
 		JPanel mainPanel = new JPanel();
 		mainPanel.setLayout(new BorderLayout());
@@ -473,6 +487,102 @@ public class SimpleTwitterApp extends JFrame {
 			}
 		}
 	}
+
+	//comment 작성 다이얼로그 생성
+    	private void openCommentDialog() {
+        	//다이얼로그 생성 및 설정
+        	JDialog commentDialog = new JDialog(this, "Comment", true);
+        	commentDialog.setLayout(new GridLayout(4, 2));
+
+        	//사용자 선택을 위한 JComboBox 생성 및 설정
+        	JComboBox<String> userSelector = new JComboBox<>();
+        	populateUserSelector(userSelector);
+
+        	//트윗 선택을 위한 JComboBox 생성 및 설정
+        	JComboBox<String> tweetSelector = new JComboBox<>();
+
+        	//사용자 선택에 따라 트윗 목록을 가져오기 위한 ActionListener 추가
+        	userSelector.addActionListener(new ActionListener() {
+            		@Override
+            		public void actionPerformed(ActionEvent e) {
+                		tweetSelector.removeAllItems(); // 이전에 추가된 아이템 제거
+                		populateTweetSelector(userSelector.getSelectedItem().toString(), tweetSelector);
+            		}
+        	});
+
+        	//comment 입력을 위한 컴포넌트 추가
+        	JTextField commentField = new JTextField(30);
+
+        	//comment 게시 버튼 추가
+        	JButton postCommentButton = new JButton("Comment");
+        	postCommentButton.addActionListener(new ActionListener() {
+            		@Override
+            		public void actionPerformed(ActionEvent e) {
+                		//comment 작성 로직
+                		String selectedUserID = userSelector.getSelectedItem().toString();
+                		String selectedTweetID = tweetSelector.getSelectedItem().toString();
+                		String commentContent = commentField.getText();
+
+                		//comment를 데이터베이스에 저장하고 유효성 검사
+                		if (!selectedUserID.isEmpty() && !selectedTweetID.isEmpty() && !commentContent.isEmpty()) {
+                    		postComment(selectedUserID, selectedTweetID, commentContent);
+                    		commentDialog.dispose();
+                		} else {
+                    		JOptionPane.showMessageDialog(commentDialog, "Comment를 작성하세요.", "오류", JOptionPane.ERROR_MESSAGE);
+                		}
+            		}
+        	});
+
+        	//다이얼로그에 컴포넌트 추가
+        	commentDialog.add(new JLabel("User ID:"));
+        	commentDialog.add(userSelector);
+        	commentDialog.add(new JLabel("Tweet:"));
+        	commentDialog.add(tweetSelector);
+        	commentDialog.add(new JLabel("Comment:"));
+        	commentDialog.add(commentField);
+        	commentDialog.add(new JLabel(""));
+        	commentDialog.add(postCommentButton);
+
+        	//다이얼로그 속성 설정 및 표시
+        	commentDialog.setSize(400, 200);
+        	commentDialog.setLocationRelativeTo(this);
+        	commentDialog.setVisible(true);
+    	}
+    
+    	//user 선택
+    	private void populateUserSelector(JComboBox<String> userSelector) {
+        	try {
+            		//user list를 데이터베이스에서 가져와 JComboBox에 추가
+            		String query = "SELECT UserID FROM User";
+            		try (PreparedStatement preparedStatement = connection.prepareStatement(query);
+                 	ResultSet resultSet = preparedStatement.executeQuery()) {
+
+                	while (resultSet.next()) {
+                    	userSelector.addItem(resultSet.getString("UserID"));
+                	}
+            	}
+        	} catch (SQLException e) {
+            		e.printStackTrace();
+        	}
+    	}
+    	//tweet 선택
+    	private void populateTweetSelector(String selectedUserID, JComboBox<String> tweetSelector) {
+        	try {
+            		//선택된 사용자의 트윗 목록을 가져와 JComboBox에 추가
+            		String query = "SELECT TweetID FROM Tweet WHERE WriterID = ?";
+            		try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                		preparedStatement.setString(1, selectedUserID);
+
+                		try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    			while (resultSet.next()) {
+                        		tweetSelector.addItem(resultSet.getString("TweetID"));
+                    			}
+                		}
+            		}
+        	} catch (SQLException e) {
+            		e.printStackTrace();
+        	}
+    	}
 
 	// 팔로잉 목록 보기
 	private void displayFollowingList() {
