@@ -584,6 +584,30 @@ public class SimpleTwitterApp extends JFrame {
         	}
     	}
 
+	//comment 작성 함수
+	//twitter에 작성된 comment 함수와 같은 기능인데 실행되지 않는 부분이 있어서 우선 코드 몇 줄 삭제 후 가져왔습니다
+	//제가 잘 몰라서 삭제/수정한거라 원하시는대로 다시 수정하셔도 될 것 같아요
+    	private void postComment(String userID, String tweetID, String commentContent) {
+        	try {
+            	//comment 테이블에 댓글 삽입 로직
+            	String generatedCommentID = UUID.randomUUID().toString(); //unique comment ID
+
+            	String query = "INSERT INTO Comment (CommentID, TweetID, UserID, Content, Timestamp) VALUES (?, ?, ?, ?, NOW())";
+            	try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                	preparedStatement.setString(1, generatedCommentID);
+                	preparedStatement.setString(2, tweetID);
+                	preparedStatement.setString(3, userID);
+                	preparedStatement.setString(4, commentContent);
+
+                	preparedStatement.executeUpdate();
+                	//comment 작성 성공 메시지 표시
+                	JOptionPane.showMessageDialog(this, "comment가 등록되었습니다.", "성공", JOptionPane.INFORMATION_MESSAGE);
+            	}
+        	} catch (SQLException e) {
+            	e.printStackTrace();
+        	}
+    	}
+
 	// 팔로잉 목록 보기
 	private void displayFollowingList() {
 		ArrayList<String> List = twitter.FollowingList(loginUserId);
