@@ -73,6 +73,7 @@ public class SimpleTwitterApp extends JFrame {
                     }
                     if (Twitter.checkLogin(inputId, inputPassword)) {
                         isLoggedIn = true;
+                        loginUserId = inputId;
                         JOptionPane.showMessageDialog(SimpleTwitterApp.this, "로그인 되었습니다.", "로그인 성공", JOptionPane.INFORMATION_MESSAGE);
 
                         //로그인 상태에 따라 컴포넌트를 숨기거나 보이게 설정
@@ -91,6 +92,7 @@ public class SimpleTwitterApp extends JFrame {
                             @Override
                             public void actionPerformed(ActionEvent e) {
                                 isLoggedIn = false;
+                                loginUserId = null;
                                 JOptionPane.showMessageDialog(SimpleTwitterApp.this, "로그아웃 되었습니다.", "로그아웃", JOptionPane.INFORMATION_MESSAGE);
                                 //로그아웃 시 피드 영역을 비우기
                                 feedArea.setText("");
