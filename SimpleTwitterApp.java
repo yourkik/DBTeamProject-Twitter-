@@ -449,6 +449,8 @@ public class SimpleTwitterApp extends JFrame {
 		// Userid가 유효한 값인지 확인하는 함수 필요
 
 		TreeMap<String, String> tweetsMap = new TreeMap<>();
+		TreeMap<String, String> commentsMap = new TreeMap<>();
+		
 		tweetsMap = Twitter.displayUserAndFollowingTweets(userId);
 
 		// error가 발생했을 경우 처리 구문
@@ -461,6 +463,12 @@ public class SimpleTwitterApp extends JFrame {
 		//Tweet 내용을 최신순으로 출력
 		for (String tweet : tweetsMap.descendingMap().values()) {
 			feedArea.append(tweet+"\n");
+			commentsMap = Twitter.displayCommentsForTweet(Twitter.getTweetIDFromTweetString(tweet));
+			if(!commentsMap.isEmpty()) {
+				for(String comment : commentsMap.descendingMap().values()) {
+					feedArea.append("      ->"+comment+"\n");
+				}
+			}
 		}
 	}
 

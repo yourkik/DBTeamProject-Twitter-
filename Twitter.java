@@ -151,19 +151,22 @@ public class Twitter {
 	}
 
 	public static void comment(String tweetID, String userID, String content) {
-    		String insertCommentQuery = "INSERT INTO Comment (CommentID, TweetID, WriterID, Content) VALUES (?, ?, ?, ?)";
+    		String insertCommentQuery = "INSERT INTO Comment (CommentID, TweetID, UserID, Content, Timestamp) VALUES (?, ?, ?, ?, ?)";
     		try {
         		PreparedStatement preparedStatement = con.prepareStatement(insertCommentQuery);
         		String commentID = UUID.randomUUID().toString(); // Generate a unique commentID
+        		commentID = commentID.replaceAll("-", "").substring(0, 20);
+        		String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date()); // Get the current timestamp
 		        preparedStatement.setString(1, commentID);
 		        preparedStatement.setString(2, tweetID);
 		        preparedStatement.setString(3, userID);
 		        preparedStatement.setString(4, content);
+		        preparedStatement.setString(5,timestamp);
 		        preparedStatement.executeUpdate();
 		        System.out.println("게시완료.");
 		} catch (SQLException e) {
 		        e.printStackTrace();
-		        System.err.println("게시중 오류가 발생하였습니다.");
+		        System.err.println("comment 게시중 오류가 발생하였습니다.");
 		}
 	}
 
@@ -261,6 +264,51 @@ public class Twitter {
 		}
 	}
 	
+	public static String getTweetIDFromTweetString(String tweet) {
+	    String[] parts = tweet.split(", "); // 예시: "TweetID: 123, Content: ..."
+	    for (String part : parts) {
+	        if (part.startsWith("TweetID:")) {
+	            return part.split(": ")[1]; // "123"
+	        }
+	    }
+	    return null; // 적절한 부분을 찾지 못한 경우
+	}
+	
+	public static TreeMap<String, String> displayCommentsForTweet(String tweetID) {
+	    TreeMap<String, String> commentsMap = new TreeMap<>(); // TreeMap을 사용하여 댓글을 최신순으로 정렬
+
+	    String selectCommentsQuery = "SELECT * FROM Comment WHERE TweetID=?";
+	    try {
+	        PreparedStatement preparedStatement = con.prepareStatement(selectCommentsQuery);
+	        preparedStatement.setString(1, tweetID);
+	        ResultSet resultSet = preparedStatement.executeQuery();
+
+	        while (resultSet.next()) {
+	            String commentID = resultSet.getString("CommentID");
+	            String content = resultSet.getString("Content");
+	            String userID = resultSet.getString("UserID");
+	            String timestamp = resultSet.getString("Timestamp");
+	            commentsMap.put(timestamp, "CommentID: " + commentID + ", TweetID: " + tweetID + ", UserID: " + userID + ", Content: " + content + ", Timestamp: " + timestamp);
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        System.err.println("댓글을 가져오는 중 오류가 발생했습니다.");
+	        commentsMap.put("-1", "댓글을 가져오는 중 오류가 발생했습니다.");
+	        return commentsMap;
+	    }
+
+	    // 최신순으로 출력
+	    if (!commentsMap.isEmpty()) {
+	    	System.out.println("트윗(" + tweetID + ")에 대한 최신순 댓글:");
+	        for (String comment : commentsMap.descendingMap().values()) {
+	            System.out.println("-> " + comment);
+	        }
+	    }
+	    
+	    return commentsMap;
+	}
+
+	
 	public static TreeMap<String, String> displayUserAndFollowingTweets(String userID) {
 	    TreeMap<String, String> tweetsMap = new TreeMap<>(); // TreeMap을 사용하여 트윗을 최신순으로 정렬
 
@@ -312,9 +360,11 @@ public class Twitter {
 	    System.out.println(userID + "님의 트윗과 팔로우한 사용자들의 트윗 (최신순):");
 	    for (String tweet : tweetsMap.descendingMap().values()) {
 	        System.out.println(tweet);
-	    }
+	        displayCommentsForTweet(getTweetIDFromTweetString(tweet));
+	    }	
 	    return tweetsMap;
 	}
+	
 	
 	public static void Connection() {
 		con = null;
@@ -351,12 +401,13 @@ public class Twitter {
 //		Follow("202235043","202235041");
 //		
 //		//FollowingList
-//		FollowingList("202235040");
+		System.out.println(FollowingList("202235040"));
 //		//FollowerList
-//		FollowerList("202235041");
+		FollowerList("202235041");
 //		
+		comment("0", "202235040", "hello!");
 //		//tweet("202235040","Hello");
-//		displayUserAndFollowingTweets("202235040");
+		displayUserAndFollowingTweets("202235040");
 //		
 //		//tweet("202235041","Hello 202235040!");
 //		displayUserAndFollowingTweets("202235040");
