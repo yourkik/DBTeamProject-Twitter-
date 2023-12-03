@@ -432,7 +432,7 @@ public class SimpleTwitterApp extends JFrame {
 		} else if (tweetsMap.containsKey("-1")) {
 			JOptionPane.showMessageDialog(this, tweetsMap.get("-1"), "Error", JOptionPane.ERROR_MESSAGE);
 		}
-
+		feedArea.append(userId+"'s Board\n");
 		// Tweet 내용을 최신순으로 출력
 		for (String tweet : tweetsMap.descendingMap().values()) {
 			feedArea.append(tweet + "\n");
