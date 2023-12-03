@@ -15,6 +15,7 @@ public class SimpleTwitterApp extends JFrame {
 	private boolean isLoggedIn = false;
 	private JComboBox<String> userComboBox;
 	private String loginUserId;
+	private String Password;
 
 	Twitter twitter = new Twitter();
 
@@ -225,7 +226,6 @@ public class SimpleTwitterApp extends JFrame {
 				openCommentDialog();
 			}
 		});
-
 		
 		feedLeftPanel.add(commentButton);
 		commentButton.setBackground(new Color(255, 255, 255));
@@ -380,6 +380,12 @@ public class SimpleTwitterApp extends JFrame {
 	
 	// Tweet창 열기
 	private void openTweetDialog() {
+		
+		if (!isLoggedIn) {
+			JOptionPane.showMessageDialog(null, "현재 로그인돼있지 않습니다.", "error", JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+		
 		JTextField tweetContentField = new JTextField(30);
 		JLabel label = new JLabel("write the comment for tweet: ");
 
@@ -389,6 +395,7 @@ public class SimpleTwitterApp extends JFrame {
 				JOptionPane.showMessageDialog(null, "Tweet comment is empty.", "error", JOptionPane.WARNING_MESSAGE);
 				return;
 			}
+			
 			Twitter.tweet(loginUserId, tweetContent);
 			JOptionPane.showMessageDialog(this, "트윗이 게시되었습니다.", "Success", JOptionPane.INFORMATION_MESSAGE);
 			displayUserFeed(loginUserId);
@@ -507,6 +514,12 @@ public class SimpleTwitterApp extends JFrame {
 
 	//comment 작성 다이얼로그 생성
 	private void openCommentDialog() {
+		
+		if (!isLoggedIn) {
+			JOptionPane.showMessageDialog(null, "현재 로그인돼있지 않습니다.", "error", JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+		
     	//다이얼로그 생성 및 설정
     	JDialog commentDialog = new JDialog(this, "Comment", true);
     	commentDialog.setLayout(new GridLayout(4, 2));

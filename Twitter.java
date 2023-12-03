@@ -170,7 +170,7 @@ public class Twitter {
 			}
 			TweetID = TweetID.replaceAll("-", "").substring(0, 20);
 			String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date()); // Get the current
-																								// timestamp
+																								
 			preparedStatement.setString(1, TweetID);
 			preparedStatement.setString(2, WriterID);
 			preparedStatement.setString(3, content);
