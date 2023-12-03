@@ -18,6 +18,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.UUID;
 
+import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 
 import java.util.ArrayList;
@@ -199,6 +200,46 @@ public class Twitter {
 		        e.printStackTrace();
 		        System.err.println("comment 게시중 오류가 발생하였습니다.");
 		}
+	}
+	
+	//tweet 선택
+	public static List<String> populateTweetSelector(String selectedUserID) {
+		List<String> tweets = new ArrayList<>();
+    	try {
+        		//선택된 사용자의 트윗 목록을 가져와 JComboBox에 추가
+        		String query = "SELECT TweetID FROM Tweet WHERE WriterID = ?";
+        		try (PreparedStatement preparedStatement = con.prepareStatement(query)) {
+            		preparedStatement.setString(1, selectedUserID);
+
+            		try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                			while (resultSet.next()) {
+                    		 tweets.add(resultSet.getString("TweetID"));
+                			}
+            		}
+        		}
+    	} catch (SQLException e) {
+        		e.printStackTrace();
+    	}
+    	return tweets;
+	}
+	
+	//user 선택
+	public static List<String> populateUserSelector() {
+		List<String> users = new ArrayList<>();
+    	try {
+        		//user list를 데이터베이스에서 가져와 JComboBox에 추가
+        		String query = "SELECT UserID FROM User";
+        		try (PreparedStatement preparedStatement = con.prepareStatement(query);
+             	ResultSet resultSet = preparedStatement.executeQuery()) {
+
+            	while (resultSet.next()) {
+                	users.add(resultSet.getString("UserID"));
+            	}
+        	}
+    	} catch (SQLException e) {
+        		e.printStackTrace();
+    	}
+    	return users;
 	}
 
 	

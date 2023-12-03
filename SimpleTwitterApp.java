@@ -492,78 +492,72 @@ public class SimpleTwitterApp extends JFrame {
 		}
 	}
 
-	// comment 작성 다이얼로그 생성
+	//comment 작성 다이얼로그 생성
 	private void openCommentDialog() {
-		// 다이얼로그 생성 및 설정
-		JDialog commentDialog = new JDialog(this, "Comment", true);
-		commentDialog.setLayout(new GridLayout(4, 2));
+    	//다이얼로그 생성 및 설정
+    	JDialog commentDialog = new JDialog(this, "Comment", true);
+    	commentDialog.setLayout(new GridLayout(4, 2));
 
-		// 사용자 선택을 위한 JComboBox 생성 및 설정
-		JComboBox<String> userSelector = new JComboBox<>();
-		populateUserSelector(userSelector);
+    	//사용자 선택을 위한 JComboBox 생성 및 설정
+    	JComboBox<String> userSelector = new JComboBox<>();
 
-		// 트윗 선택을 위한 JComboBox 생성 및 설정
-		JComboBox<String> tweetSelector = new JComboBox<>();
+    	for (String user: Twitter.populateUserSelector()) {
+        	userSelector.addItem(user);
+    	}
+    	
+    	//트윗 선택을 위한 JComboBox 생성 및 설정
+    	JComboBox<String> tweetSelector = new JComboBox<>();
 
-		// 사용자 선택에 따라 트윗 목록을 가져오기 위한 ActionListener 추가
-		userSelector.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				tweetSelector.removeAllItems(); // 이전에 추가된 아이템 제거
-				populateTweetSelector(userSelector.getSelectedItem().toString(), tweetSelector);
-			}
-		});
+    	//사용자 선택에 따라 트윗 목록을 가져오기 위한 ActionListener 추가
+    	userSelector.addActionListener(new ActionListener() {
+        		@Override
+        		public void actionPerformed(ActionEvent e) {
+            		tweetSelector.removeAllItems(); // 이전에 추가된 아이템 제거
+            		for(String tweet : Twitter.populateTweetSelector(userSelector.getSelectedItem().toString())){
+            			tweetSelector.addItem(tweet);
+            		}
+        		}
+    	});
 
-		// comment 입력을 위한 컴포넌트 추가
-		JTextField commentField = new JTextField(30);
+    	//comment 입력을 위한 컴포넌트 추가
+    	JTextField commentField = new JTextField(30);
 
-		// comment 게시 버튼 추가
-		JButton postCommentButton = new JButton("Comment");
-		postCommentButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// comment 작성 로직
-				String selectedUserID = userSelector.getSelectedItem().toString();
-				String selectedTweetID = tweetSelector.getSelectedItem().toString();
-				String commentContent = commentField.getText();
+    	//comment 게시 버튼 추가
+    	JButton postCommentButton = new JButton("Comment");
+    	postCommentButton.addActionListener(new ActionListener() {
+        		@Override
+        		public void actionPerformed(ActionEvent e) {
+            		//comment 작성 로직
+            		String selectedUserID = userSelector.getSelectedItem().toString();
+            		String selectedTweetID = tweetSelector.getSelectedItem().toString();
+            		String commentContent = commentField.getText();
 
-				// comment를 데이터베이스에 저장하고 유효성 검사
-				if (!selectedUserID.isEmpty() && !selectedTweetID.isEmpty() && !commentContent.isEmpty()) {
-					postComment(selectedUserID, selectedTweetID, commentContent);
-					commentDialog.dispose();
-				} else {
-					JOptionPane.showMessageDialog(commentDialog, "Comment를 작성하세요.", "오류", JOptionPane.ERROR_MESSAGE);
-				}
-			}
-		});
+            		//comment를 데이터베이스에 저장하고 유효성 검사
+            		if (!selectedUserID.isEmpty() && !selectedTweetID.isEmpty() && !commentContent.isEmpty()) {
+                		Twitter.comment(selectedTweetID, loginUserId, commentContent);
+                		commentDialog.dispose();
+            		} else {
+                		JOptionPane.showMessageDialog(commentDialog, "Comment를 작성하세요.", "오류", JOptionPane.ERROR_MESSAGE);
+            		}
+        		}
+    	});
 
-		// 다이얼로그에 컴포넌트 추가
-		commentDialog.add(new JLabel("User ID:"));
-		commentDialog.add(userSelector);
-		commentDialog.add(new JLabel("Tweet:"));
-		commentDialog.add(tweetSelector);
-		commentDialog.add(new JLabel("Comment:"));
-		commentDialog.add(commentField);
-		commentDialog.add(new JLabel(""));
-		commentDialog.add(postCommentButton);
+    	//다이얼로그에 컴포넌트 추가
+    	commentDialog.add(new JLabel("User ID:"));
+    	commentDialog.add(userSelector);
+    	commentDialog.add(new JLabel("Tweet:"));
+    	commentDialog.add(tweetSelector);
+    	commentDialog.add(new JLabel("Comment:"));
+    	commentDialog.add(commentField);
+    	commentDialog.add(new JLabel(""));
+    	commentDialog.add(postCommentButton);
 
-		// 다이얼로그 속성 설정 및 표시
-		commentDialog.setSize(400, 200);
-		commentDialog.setLocationRelativeTo(this);
-		commentDialog.setVisible(true);
+    	//다이얼로그 속성 설정 및 표시
+    	commentDialog.setSize(400, 200);
+    	commentDialog.setLocationRelativeTo(this);
+    	commentDialog.setVisible(true);
 	}
 
-	private void populateTweetSelector(JComboBox<String> tweetSelector) {
-		// 트윗 목록을 가져와 JComboBox에 추가
-		TreeMap<String, String> tweetsMap = new TreeMap<>();
-		tweetsMap = Twitter.displayUserAndFollowingTweets(loginUserId);
-
-		for (String tweet : tweetsMap.values()) {
-			tweetSelector.addItem(Twitter.getTweetIDFromTweetString(tweet));
-		}
-
-	}
-	
 	// 팔로잉 목록 보기
 	private void displayFollowingList() {
 		ArrayList<String> List = twitter.FollowingList(loginUserId);
@@ -584,19 +578,6 @@ public class SimpleTwitterApp extends JFrame {
 				JOptionPane.INFORMATION_MESSAGE);
 	}
 	
-		//comment 작성 함수
-		//twitter에 작성된 comment 함수와 같은 기능인데 실행되지 않는 부분이 있어서 우선 코드 몇 줄 삭제 후 가져왔습니다
-		//제가 잘 몰라서 삭제/수정한거라 원하시는대로 다시 수정하셔도 될 것 같아요
-	    	private void postComment(String userID, String tweetID, String commentContent) {
-	        	try {
-	            	//comment 테이블에 댓글 삽입 로직
-	        
-	                	JOptionPane.showMessageDialog(this, "comment가 등록되었습니다.", "성공", JOptionPane.INFORMATION_MESSAGE);
-	            	}
-	        	} catch (SQLException e) {
-	            	e.printStackTrace();
-	        	}
-	    	}
 	
 	// 팔로우 할 수 있는 user검색 후 팔로우 기능
 	private void displayFollowableUsers() {
