@@ -40,107 +40,111 @@ public class SimpleTwitterApp extends JFrame {
 		setLayout(new BorderLayout());
 
 		JPanel userPanel = new JPanel();
-        userPanel.setBackground(new Color(126, 210, 255)); //배경 색상
-        
-        JButton loginButton = new JButton("Login");
-        loginButton.setBackground(new Color(255, 255, 255)); //버튼 색상
-        loginButton.setForeground(Color.BLUE); //텍스트 색상
-        
-        if (!isLoggedIn) {
-            //로그인 필드 및 버튼
-            JTextField loginIdField = new JTextField(10);
-            JPasswordField loginPasswordField = new JPasswordField(10);
+		userPanel.setBackground(new Color(126, 210, 255)); // 배경 색상
 
-            userPanel.add(new JLabel("UserID:"));
-            userPanel.add(loginIdField);
-            userPanel.add(new JLabel("Password:"));
-            userPanel.add(loginPasswordField);
-            userPanel.add(loginButton);
-            
+		JButton loginButton = new JButton("Login");
+		loginButton.setBackground(new Color(255, 255, 255)); // 버튼 색상
+		loginButton.setForeground(Color.BLUE); // 텍스트 색상
 
-            //로그인 버튼 액션 처리
-            loginButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    //로그인 로직 수행
-                    String inputId = loginIdField.getText();
-                    String inputPassword = new String(loginPasswordField.getPassword());
+		if (!isLoggedIn) {
+			// 로그인 필드 및 버튼
+			JTextField loginIdField = new JTextField(10);
+			JPasswordField loginPasswordField = new JPasswordField(10);
 
-                    if (inputId.isEmpty() || inputPassword.isEmpty()) {
-                        //아이디 또는 비밀번호가 비어있으면 오류 메시지 표시
-                        JOptionPane.showMessageDialog(SimpleTwitterApp.this, "아이디와 비밀번호를 모두 입력하세요.", "입력 오류", JOptionPane.ERROR_MESSAGE);
-                        return; //로그인 로직 수행하지 않고 종료
-                    }
-                    if (Twitter.checkLogin(inputId, inputPassword)) {
-                        isLoggedIn = true;
-                        loginUserId = inputId;
-                        JOptionPane.showMessageDialog(SimpleTwitterApp.this, "로그인 되었습니다.", "로그인 성공", JOptionPane.INFORMATION_MESSAGE);
+			userPanel.add(new JLabel("UserID:"));
+			userPanel.add(loginIdField);
+			userPanel.add(new JLabel("Password:"));
+			userPanel.add(loginPasswordField);
+			userPanel.add(loginButton);
 
-                        //로그인 상태에 따라 컴포넌트를 숨기거나 보이게 설정
-                        loginIdField.setVisible(false);
-                        loginPasswordField.setVisible(false);
-                        loginButton.setVisible(false);
+			// 로그인 버튼 액션 처리
+			loginButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// 로그인 로직 수행
+					String inputId = loginIdField.getText();
+					String inputPassword = new String(loginPasswordField.getPassword());
 
-                        //로그아웃 버튼 추가
-                        JButton logoutButton = new JButton("Logout");
-			logoutButton.setBackground(new Color(255, 255, 255)); //버튼 색상
-            		logoutButton.setForeground(Color.BLUE); //텍스트 색상
-                        userPanel.add(logoutButton);
+					if (inputId.isEmpty() || inputPassword.isEmpty()) {
+						// 아이디 또는 비밀번호가 비어있으면 오류 메시지 표시
+						JOptionPane.showMessageDialog(SimpleTwitterApp.this, "아이디와 비밀번호를 모두 입력하세요.", "입력 오류",
+								JOptionPane.ERROR_MESSAGE);
+						return; // 로그인 로직 수행하지 않고 종료
+					}
+					if (Twitter.checkLogin(inputId, inputPassword)) {
+						isLoggedIn = true;
+						loginUserId = inputId;
+						JOptionPane.showMessageDialog(SimpleTwitterApp.this, "로그인 되었습니다.", "로그인 성공",
+								JOptionPane.INFORMATION_MESSAGE);
 
-                        //로그아웃 버튼 액션 처리
-                        logoutButton.addActionListener(new ActionListener() {
-                            @Override
-                            public void actionPerformed(ActionEvent e) {
-                                isLoggedIn = false;
-                                loginUserId = null;
-                                JOptionPane.showMessageDialog(SimpleTwitterApp.this, "로그아웃 되었습니다.", "로그아웃", JOptionPane.INFORMATION_MESSAGE);
-                                //로그아웃 시 피드 영역을 비우기
-                                feedArea.setText("");
-                                //로그인 상태에 따라 컴포넌트를 숨기거나 보이게 설정
-                                loginIdField.setVisible(true);
-                                loginPasswordField.setVisible(true);
-                                loginButton.setVisible(true);
+						// 로그인 상태에 따라 컴포넌트를 숨기거나 보이게 설정
+						loginIdField.setVisible(false);
+						loginPasswordField.setVisible(false);
+						loginButton.setVisible(false);
 
-                                //로그아웃 버튼 제거
-                                userPanel.remove(logoutButton);
+						// 로그아웃 버튼 추가
+						JButton logoutButton = new JButton("Logout");
+						logoutButton.setBackground(new Color(255, 255, 255)); // 버튼 색상
+						logoutButton.setForeground(Color.BLUE); // 텍스트 색상
+						userPanel.add(logoutButton);
 
-                                //변경 사항을 반영하기 위해 userPanel 다시 그리기
-                                userPanel.revalidate();
-                                userPanel.repaint();
-                            }
-                        });
+						// 로그아웃 버튼 액션 처리
+						logoutButton.addActionListener(new ActionListener() {
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								isLoggedIn = false;
+								loginUserId = null;
+								JOptionPane.showMessageDialog(SimpleTwitterApp.this, "로그아웃 되었습니다.", "로그아웃",
+										JOptionPane.INFORMATION_MESSAGE);
+								// 로그아웃 시 피드 영역을 비우기
+								feedArea.setText("");
+								// 로그인 상태에 따라 컴포넌트를 숨기거나 보이게 설정
+								loginIdField.setVisible(true);
+								loginPasswordField.setVisible(true);
+								loginButton.setVisible(true);
 
-                        //로그인 성공 후 사용자 피드 표시
-                        displayUserFeed(inputId);
-                        //로그인 성공 후 필드 비우기
-                        loginIdField.setText("");
-                        loginPasswordField.setText("");
-                    } else {
-                        JOptionPane.showMessageDialog(SimpleTwitterApp.this, "아이디 또는 비밀번호가 일치하지 않습니다.", "로그인 실패", JOptionPane.ERROR_MESSAGE);
-                    }
-                }
-            });
-        } else {
-            //로그인된 경우에는 로그아웃 버튼 표시
-            JButton logoutButton = new JButton("Logout");
-            userPanel.add(logoutButton);
+								// 로그아웃 버튼 제거
+								userPanel.remove(logoutButton);
 
-            //로그아웃 버튼 액션 처리
-            logoutButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    isLoggedIn = false;
-                    JOptionPane.showMessageDialog(SimpleTwitterApp.this, "로그아웃 되었습니다.", "로그아웃", JOptionPane.INFORMATION_MESSAGE);
-                    //로그아웃 시 피드 영역을 비우기
-                    feedArea.setText("");
-                    //로그인 버튼 텍스트를 "Login"으로 변경
-                    loginButton.setText("Login");
-                }
-            });
-        }
-        userPanel.add(createUserButton);
-        createUserButton.setBackground(new Color(255, 255, 255));
-        createUserButton.setForeground(Color.BLUE);
+								// 변경 사항을 반영하기 위해 userPanel 다시 그리기
+								userPanel.revalidate();
+								userPanel.repaint();
+							}
+						});
+
+						// 로그인 성공 후 사용자 피드 표시
+						displayUserFeed(inputId);
+						// 로그인 성공 후 필드 비우기
+						loginIdField.setText("");
+						loginPasswordField.setText("");
+					} else {
+						JOptionPane.showMessageDialog(SimpleTwitterApp.this, "아이디 또는 비밀번호가 일치하지 않습니다.", "로그인 실패",
+								JOptionPane.ERROR_MESSAGE);
+					}
+				}
+			});
+		} else {
+			// 로그인된 경우에는 로그아웃 버튼 표시
+			JButton logoutButton = new JButton("Logout");
+			userPanel.add(logoutButton);
+
+			// 로그아웃 버튼 액션 처리
+			logoutButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					isLoggedIn = false;
+					JOptionPane.showMessageDialog(SimpleTwitterApp.this, "로그아웃 되었습니다.", "로그아웃",
+							JOptionPane.INFORMATION_MESSAGE);
+					// 로그아웃 시 피드 영역을 비우기
+					feedArea.setText("");
+					// 로그인 버튼 텍스트를 "Login"으로 변경
+					loginButton.setText("Login");
+				}
+			});
+		}
+		userPanel.add(createUserButton);
+		createUserButton.setBackground(new Color(255, 255, 255));
+		createUserButton.setForeground(Color.BLUE);
 
 		// 피드 영역을 JScrollPane로 감싸서 스크롤 가능하게
 		JScrollPane feedScrollPane = new JScrollPane(feedArea);
@@ -211,19 +215,19 @@ public class SimpleTwitterApp extends JFrame {
 		tweetActionButton.setBackground(new Color(255, 255, 255));
 		tweetActionButton.setForeground(Color.BLUE);
 
-		//comment 버튼 추가
-        	JButton commentButton = new JButton("Comment");
-        	setButtonSize(commentButton);
-        	commentButton.addActionListener(new ActionListener() {
-           		@Override
-          		public void actionPerformed(ActionEvent e) {
-                	//comment 다이얼로그를 열고 댓글을 처리하는 로직 수행
-                	openCommentDialog();
-            		}
-        	});
-        	feedLeftPanel.add(commentButton);
-        	commentButton.setBackground(new Color(255, 255, 255));
-        	commentButton.setForeground(Color.BLUE);
+		// comment 버튼 추가
+		JButton commentButton = new JButton("Comment");
+		setButtonSize(commentButton);
+		commentButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// comment 다이얼로그를 열고 댓글을 처리하는 로직 수행
+				openCommentDialog();
+			}
+		});
+		feedLeftPanel.add(commentButton);
+		commentButton.setBackground(new Color(255, 255, 255));
+		commentButton.setForeground(Color.BLUE);
 
 		// 전체 레이아웃 구성
 		JPanel mainPanel = new JPanel();
@@ -327,7 +331,6 @@ public class SimpleTwitterApp extends JFrame {
 		});
 	}
 
-
 	// 새로 열리는 창 설정
 	private void openInputDialog(String title, String okButtonText, ActionListener okAction, String[] labels,
 			JComponent[] components) {
@@ -394,7 +397,7 @@ public class SimpleTwitterApp extends JFrame {
 						JOptionPane.WARNING_MESSAGE);
 				return;
 			}
-			if(!twitter.updatePassword(loginUserId, newPassword)) {
+			if (!twitter.updatePassword(loginUserId, newPassword)) {
 				JOptionPane.showMessageDialog(this, "비밀번호 변경 중 오류가 발생했습니다.", "Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
@@ -460,14 +463,14 @@ public class SimpleTwitterApp extends JFrame {
 		}
 	}
 
-	//2023.11.29 박건우 추가
-	//UserFeed에 유저와 follow 중인 사람의 트윗을 순서대로 출력하는 메서드
+	// 2023.11.29 박건우 추가
+	// UserFeed에 유저와 follow 중인 사람의 트윗을 순서대로 출력하는 메서드
 	private void displayUserFeed(String userId) {
 		// Userid가 유효한 값인지 확인하는 함수 필요
 
 		TreeMap<String, String> tweetsMap = new TreeMap<>();
 		TreeMap<String, String> commentsMap = new TreeMap<>();
-		
+
 		tweetsMap = Twitter.displayUserAndFollowingTweets(userId);
 
 		// error가 발생했을 경우 처리 구문
@@ -477,145 +480,99 @@ public class SimpleTwitterApp extends JFrame {
 			JOptionPane.showMessageDialog(this, tweetsMap.get("-1"), "Error", JOptionPane.ERROR_MESSAGE);
 		}
 
-		//Tweet 내용을 최신순으로 출력
+		// Tweet 내용을 최신순으로 출력
 		for (String tweet : tweetsMap.descendingMap().values()) {
-			feedArea.append(tweet+"\n");
+			feedArea.append(tweet + "\n");
 			commentsMap = Twitter.displayCommentsForTweet(Twitter.getTweetIDFromTweetString(tweet));
-			if(!commentsMap.isEmpty()) {
-				for(String comment : commentsMap.descendingMap().values()) {
-					feedArea.append("      ->"+comment+"\n");
+			if (!commentsMap.isEmpty()) {
+				for (String comment : commentsMap.descendingMap().values()) {
+					feedArea.append("      ->" + comment + "\n");
 				}
 			}
 		}
 	}
 
-	//comment 작성 다이얼로그 생성
-    	private void openCommentDialog() {
-        	//다이얼로그 생성 및 설정
-        	JDialog commentDialog = new JDialog(this, "Comment", true);
-        	commentDialog.setLayout(new GridLayout(4, 2));
+	// comment 작성 다이얼로그 생성
+	private void openCommentDialog() {
+		// 다이얼로그 생성 및 설정
+		JDialog commentDialog = new JDialog(this, "Comment", true);
+		commentDialog.setLayout(new GridLayout(4, 2));
 
-        	//사용자 선택을 위한 JComboBox 생성 및 설정
-        	JComboBox<String> userSelector = new JComboBox<>();
-        	populateUserSelector(userSelector);
+		// 사용자 선택을 위한 JComboBox 생성 및 설정
+		JComboBox<String> userSelector = new JComboBox<>();
+		populateUserSelector(userSelector);
 
-        	//트윗 선택을 위한 JComboBox 생성 및 설정
-        	JComboBox<String> tweetSelector = new JComboBox<>();
+		// 트윗 선택을 위한 JComboBox 생성 및 설정
+		JComboBox<String> tweetSelector = new JComboBox<>();
 
-        	//사용자 선택에 따라 트윗 목록을 가져오기 위한 ActionListener 추가
-        	userSelector.addActionListener(new ActionListener() {
-            		@Override
-            		public void actionPerformed(ActionEvent e) {
-                		tweetSelector.removeAllItems(); // 이전에 추가된 아이템 제거
-                		populateTweetSelector(userSelector.getSelectedItem().toString(), tweetSelector);
-            		}
-        	});
+		// 사용자 선택에 따라 트윗 목록을 가져오기 위한 ActionListener 추가
+		userSelector.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				tweetSelector.removeAllItems(); // 이전에 추가된 아이템 제거
+				populateTweetSelector(userSelector.getSelectedItem().toString(), tweetSelector);
+			}
+		});
 
-        	//comment 입력을 위한 컴포넌트 추가
-        	JTextField commentField = new JTextField(30);
+		// comment 입력을 위한 컴포넌트 추가
+		JTextField commentField = new JTextField(30);
 
-        	//comment 게시 버튼 추가
-        	JButton postCommentButton = new JButton("Comment");
-        	postCommentButton.addActionListener(new ActionListener() {
-            		@Override
-            		public void actionPerformed(ActionEvent e) {
-                		//comment 작성 로직
-                		String selectedUserID = userSelector.getSelectedItem().toString();
-                		String selectedTweetID = tweetSelector.getSelectedItem().toString();
-                		String commentContent = commentField.getText();
+		// comment 게시 버튼 추가
+		JButton postCommentButton = new JButton("Comment");
+		postCommentButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// comment 작성 로직
+				String selectedUserID = userSelector.getSelectedItem().toString();
+				String selectedTweetID = tweetSelector.getSelectedItem().toString();
+				String commentContent = commentField.getText();
 
-                		//comment를 데이터베이스에 저장하고 유효성 검사
-                		if (!selectedUserID.isEmpty() && !selectedTweetID.isEmpty() && !commentContent.isEmpty()) {
-                    		postComment(selectedUserID, selectedTweetID, commentContent);
-                    		commentDialog.dispose();
-                		} else {
-                    		JOptionPane.showMessageDialog(commentDialog, "Comment를 작성하세요.", "오류", JOptionPane.ERROR_MESSAGE);
-                		}
-            		}
-        	});
+				// comment를 데이터베이스에 저장하고 유효성 검사
+				if (!selectedUserID.isEmpty() && !selectedTweetID.isEmpty() && !commentContent.isEmpty()) {
+					postComment(selectedUserID, selectedTweetID, commentContent);
+					commentDialog.dispose();
+				} else {
+					JOptionPane.showMessageDialog(commentDialog, "Comment를 작성하세요.", "오류", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		});
 
-        	//다이얼로그에 컴포넌트 추가
-        	commentDialog.add(new JLabel("User ID:"));
-        	commentDialog.add(userSelector);
-        	commentDialog.add(new JLabel("Tweet:"));
-        	commentDialog.add(tweetSelector);
-        	commentDialog.add(new JLabel("Comment:"));
-        	commentDialog.add(commentField);
-        	commentDialog.add(new JLabel(""));
-        	commentDialog.add(postCommentButton);
+		// 다이얼로그에 컴포넌트 추가
+		commentDialog.add(new JLabel("User ID:"));
+		commentDialog.add(userSelector);
+		commentDialog.add(new JLabel("Tweet:"));
+		commentDialog.add(tweetSelector);
+		commentDialog.add(new JLabel("Comment:"));
+		commentDialog.add(commentField);
+		commentDialog.add(new JLabel(""));
+		commentDialog.add(postCommentButton);
 
-        	//다이얼로그 속성 설정 및 표시
-        	commentDialog.setSize(400, 200);
-        	commentDialog.setLocationRelativeTo(this);
-        	commentDialog.setVisible(true);
-    	}
-    
-    	//user 선택
-    	private void populateUserSelector(JComboBox<String> userSelector) {
-        	try {
-            		//user list를 데이터베이스에서 가져와 JComboBox에 추가
-            		String query = "SELECT UserID FROM User";
-            		try (PreparedStatement preparedStatement = connection.prepareStatement(query);
-                 	ResultSet resultSet = preparedStatement.executeQuery()) {
+		// 다이얼로그 속성 설정 및 표시
+		commentDialog.setSize(400, 200);
+		commentDialog.setLocationRelativeTo(this);
+		commentDialog.setVisible(true);
+	}
 
-                	while (resultSet.next()) {
-                    	userSelector.addItem(resultSet.getString("UserID"));
-                	}
-            	}
-        	} catch (SQLException e) {
-            		e.printStackTrace();
-        	}
-    	}
-    	//tweet 선택
-    	private void populateTweetSelector(String selectedUserID, JComboBox<String> tweetSelector) {
-        	try {
-            		//선택된 사용자의 트윗 목록을 가져와 JComboBox에 추가
-            		String query = "SELECT TweetID FROM Tweet WHERE WriterID = ?";
-            		try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-                		preparedStatement.setString(1, selectedUserID);
+	private void populateTweetSelector(JComboBox<String> tweetSelector) {
+		// 트윗 목록을 가져와 JComboBox에 추가
+		TreeMap<String, String> tweetsMap = new TreeMap<>();
+		tweetsMap = Twitter.displayUserAndFollowingTweets(loginUserId);
 
-                		try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                    			while (resultSet.next()) {
-                        		tweetSelector.addItem(resultSet.getString("TweetID"));
-                    			}
-                		}
-            		}
-        	} catch (SQLException e) {
-            		e.printStackTrace();
-        	}
-    	}
+		for (String tweet : tweetsMap.values()) {
+			tweetSelector.addItem(Twitter.getTweetIDFromTweetString(tweet));
+		}
 
-	//comment 작성 함수
-	//twitter에 작성된 comment 함수와 같은 기능인데 실행되지 않는 부분이 있어서 우선 코드 몇 줄 삭제 후 가져왔습니다
-	//제가 잘 몰라서 삭제/수정한거라 원하시는대로 다시 수정하셔도 될 것 같아요
-    	private void postComment(String userID, String tweetID, String commentContent) {
-        	try {
-            	//comment 테이블에 댓글 삽입 로직
-            	String generatedCommentID = UUID.randomUUID().toString(); //unique comment ID
-
-            	String query = "INSERT INTO Comment (CommentID, TweetID, UserID, Content, Timestamp) VALUES (?, ?, ?, ?, NOW())";
-            	try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-                	preparedStatement.setString(1, generatedCommentID);
-                	preparedStatement.setString(2, tweetID);
-                	preparedStatement.setString(3, userID);
-                	preparedStatement.setString(4, commentContent);
-
-                	preparedStatement.executeUpdate();
-                	//comment 작성 성공 메시지 표시
-                	JOptionPane.showMessageDialog(this, "comment가 등록되었습니다.", "성공", JOptionPane.INFORMATION_MESSAGE);
-            	}
-        	} catch (SQLException e) {
-            	e.printStackTrace();
-        	}
-    	}
+	}
+	
+	
 
 	// 팔로잉 목록 보기
 	private void displayFollowingList() {
 		ArrayList<String> List = twitter.FollowingList(loginUserId);
-		
+
 		StringBuilder followingList = new StringBuilder("Following List:\n");
-		if(List.size() != 0) {
-			for(int i = 0; i < List.size(); i++) {
+		if (List.size() != 0) {
+			for (int i = 0; i < List.size(); i++) {
 				followingList.append(List.get(i)).append("\n");
 			}
 		} else {
@@ -628,32 +585,55 @@ public class SimpleTwitterApp extends JFrame {
 		JOptionPane.showMessageDialog(this, new JScrollPane(followingTextArea), "Following List",
 				JOptionPane.INFORMATION_MESSAGE);
 	}
+	
+		//comment 작성 함수
+		//twitter에 작성된 comment 함수와 같은 기능인데 실행되지 않는 부분이 있어서 우선 코드 몇 줄 삭제 후 가져왔습니다
+		//제가 잘 몰라서 삭제/수정한거라 원하시는대로 다시 수정하셔도 될 것 같아요
+	    	private void postComment(String userID, String tweetID, String commentContent) {
+	        	try {
+	            	//comment 테이블에 댓글 삽입 로직
+	            	String generatedCommentID = UUID.randomUUID().toString(); //unique comment ID
 
+	            	String query = "INSERT INTO Comment (CommentID, TweetID, UserID, Content, Timestamp) VALUES (?, ?, ?, ?, NOW())";
+	            	try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+	                	preparedStatement.setString(1, generatedCommentID);
+	                	preparedStatement.setString(2, tweetID);
+	                	preparedStatement.setString(3, userID);
+	                	preparedStatement.setString(4, commentContent);
+
+	                	preparedStatement.executeUpdate();
+	                	//comment 작성 성공 메시지 표시
+	                	JOptionPane.showMessageDialog(this, "comment가 등록되었습니다.", "성공", JOptionPane.INFORMATION_MESSAGE);
+	            	}
+	        	} catch (SQLException e) {
+	            	e.printStackTrace();
+	        	}
+	    	}
+	
 	// 팔로우 할 수 있는 user검색 후 팔로우 기능
 	private void displayFollowableUsers() {
 		ArrayList<String> List = twitter.AllUserList(loginUserId);
-		
+
 		JComboBox<String> followableUsersComboBox = new JComboBox<>();
 		followableUsersComboBox.setEditable(true);
-		if(List.size() != 0) {
-			for(int i = 0; i < List.size(); i++) {
+		if (List.size() != 0) {
+			for (int i = 0; i < List.size(); i++) {
 				followableUsersComboBox.addItem(List.get(i));
 			}
 		}
-		JOptionPane.showMessageDialog(this, followableUsersComboBox, "Follow User",
-				JOptionPane.INFORMATION_MESSAGE);
+		JOptionPane.showMessageDialog(this, followableUsersComboBox, "Follow User", JOptionPane.INFORMATION_MESSAGE);
 		String selectedUser = followableUsersComboBox.getSelectedItem().toString();
 		followUser(selectedUser);
-			
+
 	}
 
 	// 팔로워 목록 보기
 	private void displayFollowersList() {
 		ArrayList<String> List = twitter.FollowerList(loginUserId);
-		
+
 		StringBuilder followerList = new StringBuilder("Follower List:\n");
-		if(List.size() != 0) {
-			for(int i = 0; i < List.size(); i++) {
+		if (List.size() != 0) {
+			for (int i = 0; i < List.size(); i++) {
 				followerList.append(List.get(i)).append("\n");
 			}
 		} else {

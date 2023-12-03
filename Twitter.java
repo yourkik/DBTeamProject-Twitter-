@@ -150,8 +150,8 @@ public class Twitter {
     		}
 	}
 
-	public static void comment(String tweetID, String userID, String content) {
-    		String insertCommentQuery = "INSERT INTO Comment (CommentID, TweetID, UserID, Content, Timestamp) VALUES (?, ?, ?, ?, ?)";
+	public static void comment(String tweetID, String WriterID, String content) {
+    		String insertCommentQuery = "INSERT INTO Comment (CommentID, TweetID, WriterID, Content, Timestamp) VALUES (?, ?, ?, ?, ?)";
     		try {
         		PreparedStatement preparedStatement = con.prepareStatement(insertCommentQuery);
         		String commentID = UUID.randomUUID().toString(); // Generate a unique commentID
@@ -159,7 +159,7 @@ public class Twitter {
         		String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date()); // Get the current timestamp
 		        preparedStatement.setString(1, commentID);
 		        preparedStatement.setString(2, tweetID);
-		        preparedStatement.setString(3, userID);
+		        preparedStatement.setString(3, WriterID);
 		        preparedStatement.setString(4, content);
 		        preparedStatement.setString(5,timestamp);
 		        preparedStatement.executeUpdate();
@@ -286,9 +286,9 @@ public class Twitter {
 	        while (resultSet.next()) {
 	            String commentID = resultSet.getString("CommentID");
 	            String content = resultSet.getString("Content");
-	            String userID = resultSet.getString("UserID");
+	            String userID = resultSet.getString("WriterID");
 	            String timestamp = resultSet.getString("Timestamp");
-	            commentsMap.put(timestamp, "CommentID: " + commentID + ", TweetID: " + tweetID + ", UserID: " + userID + ", Content: " + content + ", Timestamp: " + timestamp);
+	            commentsMap.put(timestamp, "CommentID: " + commentID + ", TweetID: " + tweetID + ", WriterID: " + userID + ", Content: " + content + ", Timestamp: " + timestamp);
 	        }
 	    } catch (SQLException e) {
 	        e.printStackTrace();
