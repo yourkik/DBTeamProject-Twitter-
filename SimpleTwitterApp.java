@@ -1,3 +1,5 @@
+package Twiiter;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -224,25 +226,24 @@ public class SimpleTwitterApp extends JFrame {
 			}
 		});
 		
-		//Article버튼 추가
-		JButton articleButton = new JButton("Article");
-		setButtonSize(articleButton);
-		articleButton.addActionListener(new ActionListener() {
-		    @Override
-		    public void actionPerformed(ActionEvent e) {
-		        // Article 버튼 클릭 시 동작하는 로직 추가
-		        openArticleDialog();
-		    }
-		});
-
 		feedLeftPanel.add(commentButton);
 		commentButton.setBackground(new Color(255, 255, 255));
 		commentButton.setForeground(Color.BLUE);
-
-		//article버튼 panel에 추가
-		feedLeftPanel.add(articleButton);
-		articleButton.setBackground(new Color(255, 255, 255));
-		articleButton.setForeground(Color.BLUE);
+		
+		
+		// Board 버튼 추가
+        JButton boardButton = new JButton("Board");
+        setButtonSize(boardButton);
+        boardButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // 게시판 보기 로직 추가
+                openBoardDialog();
+            }
+        });
+        feedLeftPanel.add(boardButton);
+        boardButton.setBackground(new Color(255, 255, 255));
+        boardButton.setForeground(Color.BLUE);
 
 		// 전체 레이아웃 구성
 		JPanel mainPanel = new JPanel();
@@ -421,10 +422,53 @@ public class SimpleTwitterApp extends JFrame {
 		}, new String[] { "Current Password:", "New Password:", "Confirm New Password:" },
 				new JComponent[] { currentPasswordField, newPasswordField, confirmPasswordField });
 	}
+	private void openBoardDialog() {
+        // 다이얼로그 생성
+        JDialog boardDialog = new JDialog(SimpleTwitterApp.this, "Board", true);
+        boardDialog.setLayout(new BorderLayout());
 
-	private String generateTweetId() {
-		return String.valueOf(System.currentTimeMillis());
-	}
+        // 입력 필드 및 레이블 추가
+        JTextField userIdField = new JTextField(10);
+        JPanel inputPanel = new JPanel(new GridLayout(1, 2));
+        inputPanel.add(new JLabel("UserID:"));
+        inputPanel.add(userIdField);
+
+        boardDialog.add(inputPanel, BorderLayout.CENTER);
+
+        // 확인 버튼 추가
+        JButton okButton = new JButton("OK");
+        okButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // 입력된 정보를 사용하여 게시판 보기
+                String userId = userIdField.getText();
+                displayUserFeed(userId);
+
+                // 다이얼로그 종료
+                boardDialog.dispose();
+            }
+        });
+
+        // 취소 버튼 추가
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // 다이얼로그 종료
+                boardDialog.dispose();
+            }
+        });
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(okButton);
+        buttonPanel.add(cancelButton);
+        boardDialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        // 다이얼로그 크기와 위치 설정
+        boardDialog.setSize(300, 150);
+        boardDialog.setLocationRelativeTo(SimpleTwitterApp.this);
+        boardDialog.setVisible(true);
+    }
 
 	//feedArea 초기화 함수
 	private void clearFeedArea() {
@@ -447,7 +491,7 @@ public class SimpleTwitterApp extends JFrame {
 		} else if (tweetsMap.containsKey("-1")) {
 			JOptionPane.showMessageDialog(this, tweetsMap.get("-1"), "Error", JOptionPane.ERROR_MESSAGE);
 		}
-
+		feedArea.append(userId+"'s Board\n");
 		// Tweet 내용을 최신순으로 출력
 		for (String tweet : tweetsMap.descendingMap().values()) {
 			feedArea.append(tweet + "\n");
@@ -510,8 +554,6 @@ public class SimpleTwitterApp extends JFrame {
         		}
     	});
 
-    	//article 다이얼로그 열기
-    	
     	//다이얼로그에 컴포넌트 추가
     	commentDialog.add(new JLabel("User ID:"));
     	commentDialog.add(userSelector);
@@ -607,57 +649,6 @@ public class SimpleTwitterApp extends JFrame {
 			return;
 		}
 	}
-	// Article 다이얼로그 열기
-	private void openArticleDialog() {
-	    // 다이얼로그 생성 및 설정
-	    JDialog articleDialog = new JDialog(this, "Article", true);
-	    articleDialog.setLayout(new GridLayout(3, 2));
-
-	    // 사용자 선택을 위한 JComboBox 생성 및 설정
-	    JComboBox<String> userSelector = new JComboBox<>();
-
-	    for (String user : Twitter.populateUserSelector()) {
-	        userSelector.addItem(user);
-	    }
-
-	    // Article 내용을 입력할 텍스트 필드 추가
-	    JTextField articleContentField = new JTextField(30);
-
-	    // Article 게시 버튼 추가
-	    JButton postArticleButton = new JButton("Post Article");
-	    postArticleButton.addActionListener(new ActionListener() {
-	        @Override
-	        public void actionPerformed(ActionEvent e) {
-	            // Article 작성 로직
-	            String selectedUserID = userSelector.getSelectedItem().toString();
-	            String articleContent = articleContentField.getText();
-
-	            // Article를 데이터베이스에 저장하고 유효성 검사
-	            if (!selectedUserID.isEmpty() && !articleContent.isEmpty()) {
-	                // Example: Replace with the actual logic for posting an article
-	                // Twitter.postArticle(selectedUserID, articleContent);
-	                JOptionPane.showMessageDialog(articleDialog, "Article을 작성하였습니다.", "Success", JOptionPane.INFORMATION_MESSAGE);
-	                articleDialog.dispose();
-	            } else {
-	                JOptionPane.showMessageDialog(articleDialog, "User와 Article 내용을 입력하세요.", "오류", JOptionPane.ERROR_MESSAGE);
-	            }
-	        }
-	    });
-
-	    // 다이얼로그에 컴포넌트 추가
-	    articleDialog.add(new JLabel("User ID:"));
-	    articleDialog.add(userSelector);
-	    articleDialog.add(new JLabel("Article Content:"));
-	    articleDialog.add(articleContentField);
-	    articleDialog.add(new JLabel(""));
-	    articleDialog.add(postArticleButton);
-
-	    // 다이얼로그 속성 설정 및 표시
-	    articleDialog.setSize(400, 200);
-	    articleDialog.setLocationRelativeTo(this);
-	    articleDialog.setVisible(true);
-	}
-
 
 	// 버튼 크기 설정
 	private void setButtonSize(JButton button) {
