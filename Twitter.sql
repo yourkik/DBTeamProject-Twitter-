@@ -29,6 +29,7 @@ CREATE TABLE Follower (
    Foreign key(UserID) references USer(USerID)
 )DEFAULT CHARACTER SET UTF8;
 
+#UserID가 FollowerID를 Following 중
 CREATE TABLE Following (
   UserID varchar(20),
   FollowerID varchar(20),
@@ -41,11 +42,11 @@ CREATE TABLE Following (
 CREATE TABLE Comment (
   CommentID varchar(20) PRIMARY KEY,
   TweetID varchar(20),
-  UserID varchar(20),
+  WriterID varchar(20),
   Content varchar(50),
   Timestamp varchar(25),
   FOREIGN KEY (TweetID) REFERENCES Tweet(TweetID),
-  FOREIGN KEY (UserID) REFERENCES User(UserID)
+  FOREIGN KEY (WriterID) REFERENCES User(UserID)
 )DEFAULT CHARACTER SET UTF8;
 
 /*User 추가*/
@@ -55,6 +56,9 @@ select *from User;
 /*Tweet 추가*/
 insert into Tweet values('0','202235040','Test','2023.11.21');
 select *from Tweet;
+select *from comment;
+
+insert into comment values('0','0','202235040','hello','2023.12.02');
 
 select *from following;
 select *from follower;
