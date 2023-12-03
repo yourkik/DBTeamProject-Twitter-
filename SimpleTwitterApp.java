@@ -360,7 +360,7 @@ public class SimpleTwitterApp extends JFrame {
 		dialog.setLocationRelativeTo(this);
 		dialog.setVisible(true);
 	}
-
+	
 	// Tweet창 열기
 	private void openTweetDialog() {
 		JTextField tweetContentField = new JTextField(30);
@@ -411,11 +411,16 @@ public class SimpleTwitterApp extends JFrame {
 		return String.valueOf(System.currentTimeMillis());
 	}
 
+	//feedArea 초기화 함수
+	private void clearFeedArea() {
+	    feedArea.setText(""); // feedArea에 있는 모든 텍스트를 지웁니다.
+	}
+	
 	// 2023.11.29 박건우 추가
 	// UserFeed에 유저와 follow 중인 사람의 트윗을 순서대로 출력하는 메서드
 	private void displayUserFeed(String userId) {
 		// Userid가 유효한 값인지 확인하는 함수 필요
-
+		clearFeedArea();
 		TreeMap<String, String> tweetsMap = new TreeMap<>();
 		TreeMap<String, String> commentsMap = new TreeMap<>();
 
