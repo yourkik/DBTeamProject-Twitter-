@@ -25,61 +25,59 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 
-
 public class Twitter {
 	private static Connection con;
-	
-	//중복된 UserID인지 확인하는 함수
+
+	// 중복된 UserID인지 확인하는 함수
 	public static boolean isUserIDExists(String userID) {
-	    String checkUserQuery = "SELECT UserID FROM User WHERE UserID=?";
-	    try {
-	        PreparedStatement preparedStatement = con.prepareStatement(checkUserQuery);
-	        preparedStatement.setString(1, userID);
-	        ResultSet resultSet = preparedStatement.executeQuery();
-	        return resultSet.next(); // true면 중복된 ID가 존재함
-	    } catch (SQLException e) {
-	        e.printStackTrace();
-	        System.err.println("사용자 ID 확인 중 오류가 발생했습니다.");
-	        return false;
-	    }
-	}
-	
-	//중복된 TweetID인지 확인하는 함수
-	public static boolean isTweetIDExists(String TweetID) {
-	    String checkTweetQuery = "SELECT TweetID FROM Tweet WHERE TweetID=?";
-	    try {
-	        PreparedStatement preparedStatement = con.prepareStatement(checkTweetQuery);
-	        preparedStatement.setString(1, TweetID);
-	        ResultSet resultSet = preparedStatement.executeQuery();
-	        return resultSet.next(); // true면 중복된 ID가 존재함
-	    } catch (SQLException e) {
-	        e.printStackTrace();
-	        System.err.println("Tweet ID 확인 중 오류가 발생했습니다.");
-	        return false;
-	    }
+		String checkUserQuery = "SELECT UserID FROM User WHERE UserID=?";
+		try {
+			PreparedStatement preparedStatement = con.prepareStatement(checkUserQuery);
+			preparedStatement.setString(1, userID);
+			ResultSet resultSet = preparedStatement.executeQuery();
+			return resultSet.next(); // true면 중복된 ID가 존재함
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.err.println("사용자 ID 확인 중 오류가 발생했습니다.");
+			return false;
+		}
 	}
 
-	//중복된 CommentID인지 확인하는 함수
-	public static boolean isCommmentIDExists(String CommentID) {
-	    String checkCommentQuery = "SELECT CommentID FROM Comment WHERE CommentID=?";
-	    try {
-	        PreparedStatement preparedStatement = con.prepareStatement(checkCommentQuery);
-	        preparedStatement.setString(1, CommentID);
-	        ResultSet resultSet = preparedStatement.executeQuery();
-	        return resultSet.next(); // true면 중복된 ID가 존재함
-	    } catch (SQLException e) {
-	        e.printStackTrace();
-	        System.err.println("Comment ID 확인 중 오류가 발생했습니다.");
-	        return false;
-	    }
+	// 중복된 TweetID인지 확인하는 함수
+	public static boolean isTweetIDExists(String TweetID) {
+		String checkTweetQuery = "SELECT TweetID FROM Tweet WHERE TweetID=?";
+		try {
+			PreparedStatement preparedStatement = con.prepareStatement(checkTweetQuery);
+			preparedStatement.setString(1, TweetID);
+			ResultSet resultSet = preparedStatement.executeQuery();
+			return resultSet.next(); // true면 중복된 ID가 존재함
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.err.println("Tweet ID 확인 중 오류가 발생했습니다.");
+			return false;
+		}
 	}
-		
-	
+
+	// 중복된 CommentID인지 확인하는 함수
+	public static boolean isCommmentIDExists(String CommentID) {
+		String checkCommentQuery = "SELECT CommentID FROM Comment WHERE CommentID=?";
+		try {
+			PreparedStatement preparedStatement = con.prepareStatement(checkCommentQuery);
+			preparedStatement.setString(1, CommentID);
+			ResultSet resultSet = preparedStatement.executeQuery();
+			return resultSet.next(); // true면 중복된 ID가 존재함
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.err.println("Comment ID 확인 중 오류가 발생했습니다.");
+			return false;
+		}
+	}
+
 	public static void signUp(String userID, String name, String email, String password) {
 		if (isUserIDExists(userID)) {
-	        System.out.println("이미 존재하는 사용자 ID입니다. 다른 사용자 ID를 선택해주세요.");
-	        return;
-	    }
+			System.out.println("이미 존재하는 사용자 ID입니다. 다른 사용자 ID를 선택해주세요.");
+			return;
+		}
 		String insertUserQuery = "INSERT INTO User (UserID, Name, Email, Password) VALUES (?, ?, ?, ?)";
 		try {
 			PreparedStatement preparedStatement = con.prepareStatement(insertUserQuery);
@@ -89,9 +87,9 @@ public class Twitter {
 			preparedStatement.setString(4, password);
 			preparedStatement.executeUpdate();
 			System.out.println("회원가입이 완료되었습니다.");
-			
+
 			LocalDate now = LocalDate.now();
-			 // 포맷 정의        
+			// 포맷 정의
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
 			String formatedNow = now.format(formatter);
 		} catch (SQLException e) {
@@ -100,7 +98,6 @@ public class Twitter {
 		}
 	}
 
-	
 	public static Boolean login(String inputUserID, String inputPassword) {
 		String selectUserQuery = "SELECT UserID, Password, name FROM User WHERE UserID=?";
 		try {
@@ -111,8 +108,9 @@ public class Twitter {
 			if (resultSet.next()) {
 				String password = resultSet.getString("Password");
 				if (password.equals(inputPassword)) {
-					System.out.println("로그인 성공");//로그인 성공과 아래 문장을 밖으로 빼야 비밀번호 변경이 더 수월해 질 것 같아요 후에 return 값을 name으로 변경하면 해결 가능 or check 함수를 만들어서 password가 같은지 확인하는 방법도 가능
-					System.out.println("반갑습니다 " + resultSet.getString("name")+"님");
+					System.out.println("로그인 성공");// 로그인 성공과 아래 문장을 밖으로 빼야 비밀번호 변경이 더 수월해 질 것 같아요 후에 return 값을 name으로
+													// 변경하면 해결 가능 or check 함수를 만들어서 password가 같은지 확인하는 방법도 가능
+					System.out.println("반갑습니다 " + resultSet.getString("name") + "님");
 					return true;
 				} else {
 					System.out.println("비밀번호가 일치하지 않습니다.");
@@ -164,88 +162,95 @@ public class Twitter {
 	}
 
 	public static void tweet(String WriterID, String content) {
-    		String insertTweetQuery = "INSERT INTO Tweet (TweetID, WriterID, Content, Timestamp) VALUES (?, ?, ?, ?)";
-    		try {
-    		  	PreparedStatement preparedStatement = con.prepareStatement(insertTweetQuery);
-			String tweetID = UUID.randomUUID().toString(); // Generate a unique tweetID
-			tweetID = tweetID.replaceAll("-", "").substring(0, 20);
-       			String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date()); // Get the current timestamp
-       	 		preparedStatement.setString(1, tweetID);
-        		preparedStatement.setString(2, WriterID);
-        		preparedStatement.setString(3, content);
-        		preparedStatement.setString(4, timestamp);
-        		preparedStatement.executeUpdate();
-        		System.out.println("게시완료.");
-    		} catch (SQLException e) {
-        		e.printStackTrace();
-        		System.err.println("게시중 오류가 발생하였습니다.");
-    		}
+		String insertTweetQuery = "INSERT INTO Tweet (TweetID, WriterID, Content, Timestamp) VALUES (?, ?, ?, ?)";
+		try {
+			PreparedStatement preparedStatement = con.prepareStatement(insertTweetQuery);
+			String TweetID;
+			while (isTweetIDExists(TweetID = UUID.randomUUID().toString())) {
+			}
+			TweetID = TweetID.replaceAll("-", "").substring(0, 20);
+			String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date()); // Get the current
+																								// timestamp
+			preparedStatement.setString(1, TweetID);
+			preparedStatement.setString(2, WriterID);
+			preparedStatement.setString(3, content);
+			preparedStatement.setString(4, timestamp);
+			preparedStatement.executeUpdate();
+			System.out.println("게시완료.");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.err.println("게시중 오류가 발생하였습니다.");
+		}
 	}
 
 	public static void comment(String tweetID, String WriterID, String content) {
-    		String insertCommentQuery = "INSERT INTO Comment (CommentID, TweetID, WriterID, Content, Timestamp) VALUES (?, ?, ?, ?, ?)";
-    		try {
-        		PreparedStatement preparedStatement = con.prepareStatement(insertCommentQuery);
-        		String commentID = UUID.randomUUID().toString(); // Generate a unique commentID
-        		commentID = commentID.replaceAll("-", "").substring(0, 20);
-        		String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date()); // Get the current timestamp
-		        preparedStatement.setString(1, commentID);
-		        preparedStatement.setString(2, tweetID);
-		        preparedStatement.setString(3, WriterID);
-		        preparedStatement.setString(4, content);
-		        preparedStatement.setString(5,timestamp);
-		        preparedStatement.executeUpdate();
-		        System.out.println("게시완료.");
+		String insertCommentQuery = "INSERT INTO Comment (CommentID, TweetID, WriterID, Content, Timestamp) VALUES (?, ?, ?, ?, ?)";
+		try {
+			PreparedStatement preparedStatement = con.prepareStatement(insertCommentQuery);
+			String commentID;
+			while (isCommmentIDExists(commentID = UUID.randomUUID().toString())) {
+			}
+			commentID = commentID.replaceAll("-", "").substring(0, 20);
+			String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date()); // Get the current
+																								// timestamp
+			preparedStatement.setString(1, commentID);
+			preparedStatement.setString(2, tweetID);
+			preparedStatement.setString(3, WriterID);
+			preparedStatement.setString(4, content);
+			preparedStatement.setString(5, timestamp);
+			preparedStatement.executeUpdate();
+			System.out.println("게시완료.");
 		} catch (SQLException e) {
-		        e.printStackTrace();
-		        System.err.println("comment 게시중 오류가 발생하였습니다.");
+			e.printStackTrace();
+			System.err.println("comment 게시중 오류가 발생하였습니다.");
 		}
 	}
-	
-	//tweet 선택
+
+	// tweet 선택
 	public static List<String> populateTweetSelector(String selectedUserID) {
 		List<String> tweets = new ArrayList<>();
-    	try {
-        		//선택된 사용자의 트윗 목록을 가져와 JComboBox에 추가
-        		String query = "SELECT TweetID FROM Tweet WHERE WriterID = ?";
-        		try (PreparedStatement preparedStatement = con.prepareStatement(query)) {
-            		preparedStatement.setString(1, selectedUserID);
+		try {
+			// 선택된 사용자의 트윗 목록을 가져와 JComboBox에 추가
+			String query = "SELECT TweetID FROM Tweet WHERE WriterID = ?";
+			try (PreparedStatement preparedStatement = con.prepareStatement(query)) {
+				preparedStatement.setString(1, selectedUserID);
 
-            		try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                			while (resultSet.next()) {
-                    		 tweets.add(resultSet.getString("TweetID"));
-                			}
-            		}
-        		}
-    	} catch (SQLException e) {
-        		e.printStackTrace();
-    	}
-    	return tweets;
+				try (ResultSet resultSet = preparedStatement.executeQuery()) {
+					while (resultSet.next()) {
+						tweets.add(resultSet.getString("TweetID"));
+					}
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return tweets;
 	}
-	
-	//user 선택
+
+	// user 선택
 	public static List<String> populateUserSelector() {
 		List<String> users = new ArrayList<>();
-    	try {
-        		//user list를 데이터베이스에서 가져와 JComboBox에 추가
-        		String query = "SELECT UserID FROM User";
-        		try (PreparedStatement preparedStatement = con.prepareStatement(query);
-             	ResultSet resultSet = preparedStatement.executeQuery()) {
+		try {
+			// user list를 데이터베이스에서 가져와 JComboBox에 추가
+			String query = "SELECT UserID FROM User";
+			try (PreparedStatement preparedStatement = con.prepareStatement(query);
+					ResultSet resultSet = preparedStatement.executeQuery()) {
 
-            	while (resultSet.next()) {
-                	users.add(resultSet.getString("UserID"));
-            	}
-        	}
-    	} catch (SQLException e) {
-        		e.printStackTrace();
-    	}
-    	return users;
+				while (resultSet.next()) {
+					users.add(resultSet.getString("UserID"));
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return users;
 	}
 
-	
-	public static void Follow(String userID, String followID) {									  // 유저1이 유저2를 팔로우하는 상황 가정
-		String insertFollowingQuery = "INSERT INTO Following (UserID, FollowerID) VALUES (?, ?)"; // 유저1의 팔로잉 목록에 유저2를 업데이트
-		String insertFollowerQuery = "INSERT INTO Follower (UserID, FollowingID) VALUES (?, ?)";  // 유저2의 팔로워 목록에 유저1을 업데이트
+	public static void Follow(String userID, String followID) { // 유저1이 유저2를 팔로우하는 상황 가정
+		String insertFollowingQuery = "INSERT INTO Following (UserID, FollowerID) VALUES (?, ?)"; // 유저1의 팔로잉 목록에 유저2를
+																									// 업데이트
+		String insertFollowerQuery = "INSERT INTO Follower (UserID, FollowingID) VALUES (?, ?)"; // 유저2의 팔로워 목록에 유저1을
+																									// 업데이트
 		try {
 			PreparedStatement preparedStatement = con.prepareStatement(insertFollowingQuery);
 			preparedStatement.setString(1, userID);
@@ -255,13 +260,13 @@ public class Twitter {
 			preparedStatement2.setString(2, userID);
 			preparedStatement.executeUpdate();
 			preparedStatement2.executeUpdate();
-			System.out.println(userID + "(이)가 " + followID +"(을)를 팔로우했습니다.");
+			System.out.println(userID + "(이)가 " + followID + "(을)를 팔로우했습니다.");
 		} catch (SQLException e) {
 			e.printStackTrace();
 			System.err.println("팔로우에 실패했습니다.");
 		}
 	}
-	
+
 	public static ArrayList AllUserList(String userID) {
 		String query = "SELECT UserID FROM User WHERE UserID != ?";
 		ArrayList<String> UserList = new ArrayList<>();
@@ -269,7 +274,7 @@ public class Twitter {
 			PreparedStatement preparedStatement = con.prepareStatement(query);
 			preparedStatement.setString(1, userID);
 			ResultSet resultSet = preparedStatement.executeQuery();
-			
+
 			while (resultSet.next()) {
 				String userId = resultSet.getString("UserID");
 				UserList.add(userId);
@@ -281,7 +286,7 @@ public class Twitter {
 			return UserList;
 		}
 	}
-	
+
 	public static boolean isFollowing(String followingUser, String followerUser) {
 		String query = "SELECT * FROM Following WHERE UserID = ? AND followerID = ?";
 		try (PreparedStatement preparedStatement = con.prepareStatement(query)) {
@@ -295,7 +300,7 @@ public class Twitter {
 			return false;
 		}
 	}
-	
+
 	public static ArrayList FollowingList(String UserID) { // 유저의 팔로잉 목록 확인
 		String selectFollowingQuery = "SELECT FollowerID FROM Following WHERE UserID=?";
 		ArrayList<String> followingList = new ArrayList<>();
@@ -315,7 +320,7 @@ public class Twitter {
 			return followingList;
 		}
 	}
-	
+
 	public static ArrayList FollowerList(String UserID) { // 유저의 팔로워 목록 확인
 		String selectFollowerQuery = "SELECT FollowingID FROM Follower WHERE UserID=?";
 		ArrayList<String> followerList = new ArrayList<>();
@@ -331,113 +336,113 @@ public class Twitter {
 			return followerList;
 		} catch (SQLException e) {
 			e.printStackTrace();
-			System.err.println("팔로워 목록 오류가 발생했습니다.");			
+			System.err.println("팔로워 목록 오류가 발생했습니다.");
 			return followerList;
 		}
 	}
-	
+
 	public static String getTweetIDFromTweetString(String tweet) {
-	    String[] parts = tweet.split(", "); // 예시: "TweetID: 123, Content: ..."
-	    for (String part : parts) {
-	        if (part.startsWith("TweetID:")) {
-	            return part.split(": ")[1]; // "123"
-	        }
-	    }
-	    return null; // 적절한 부분을 찾지 못한 경우
+		String[] parts = tweet.split(", "); // 예시: "TweetID: 123, Content: ..."
+		for (String part : parts) {
+			if (part.startsWith("TweetID:")) {
+				return part.split(": ")[1]; // "123"
+			}
+		}
+		return null; // 적절한 부분을 찾지 못한 경우
 	}
-	
+
 	public static TreeMap<String, String> displayCommentsForTweet(String tweetID) {
-	    TreeMap<String, String> commentsMap = new TreeMap<>(); // TreeMap을 사용하여 댓글을 최신순으로 정렬
+		TreeMap<String, String> commentsMap = new TreeMap<>(); // TreeMap을 사용하여 댓글을 최신순으로 정렬
 
-	    String selectCommentsQuery = "SELECT * FROM Comment WHERE TweetID=?";
-	    try {
-	        PreparedStatement preparedStatement = con.prepareStatement(selectCommentsQuery);
-	        preparedStatement.setString(1, tweetID);
-	        ResultSet resultSet = preparedStatement.executeQuery();
+		String selectCommentsQuery = "SELECT * FROM Comment WHERE TweetID=?";
+		try {
+			PreparedStatement preparedStatement = con.prepareStatement(selectCommentsQuery);
+			preparedStatement.setString(1, tweetID);
+			ResultSet resultSet = preparedStatement.executeQuery();
 
-	        while (resultSet.next()) {
-	            String commentID = resultSet.getString("CommentID");
-	            String content = resultSet.getString("Content");
-	            String userID = resultSet.getString("WriterID");
-	            String timestamp = resultSet.getString("Timestamp");
-	            commentsMap.put(timestamp, "CommentID: " + commentID + ", TweetID: " + tweetID + ", WriterID: " + userID + ", Content: " + content + ", Timestamp: " + timestamp);
-	        }
-	    } catch (SQLException e) {
-	        e.printStackTrace();
-	        System.err.println("댓글을 가져오는 중 오류가 발생했습니다.");
-	        commentsMap.put("-1", "댓글을 가져오는 중 오류가 발생했습니다.");
-	        return commentsMap;
-	    }
+			while (resultSet.next()) {
+				String commentID = resultSet.getString("CommentID");
+				String content = resultSet.getString("Content");
+				String userID = resultSet.getString("WriterID");
+				String timestamp = resultSet.getString("Timestamp");
+				commentsMap.put(timestamp, "CommentID: " + commentID + ", TweetID: " + tweetID + ", WriterID: " + userID
+						+ ", Content: " + content + ", Timestamp: " + timestamp);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.err.println("댓글을 가져오는 중 오류가 발생했습니다.");
+			commentsMap.put("-1", "댓글을 가져오는 중 오류가 발생했습니다.");
+			return commentsMap;
+		}
 
-	    // 최신순으로 출력
-	    if (!commentsMap.isEmpty()) {
-	    	System.out.println("트윗(" + tweetID + ")에 대한 최신순 댓글:");
-	        for (String comment : commentsMap.descendingMap().values()) {
-	            System.out.println("-> " + comment);
-	        }
-	    }
-	    
-	    return commentsMap;
+		// 최신순으로 출력
+		if (!commentsMap.isEmpty()) {
+			System.out.println("트윗(" + tweetID + ")에 대한 최신순 댓글:");
+			for (String comment : commentsMap.descendingMap().values()) {
+				System.out.println("-> " + comment);
+			}
+		}
+
+		return commentsMap;
 	}
 
-	
 	public static TreeMap<String, String> displayUserAndFollowingTweets(String userID) {
-	    TreeMap<String, String> tweetsMap = new TreeMap<>(); // TreeMap을 사용하여 트윗을 최신순으로 정렬
+		TreeMap<String, String> tweetsMap = new TreeMap<>(); // TreeMap을 사용하여 트윗을 최신순으로 정렬
 
-	    // 자신의 트윗 가져오기
-	    String selectUserTweetsQuery = "SELECT * FROM Tweet WHERE WriterID=?";
-	    try {
-	        PreparedStatement preparedStatement = con.prepareStatement(selectUserTweetsQuery);
-	        preparedStatement.setString(1, userID);
-	        ResultSet resultSet = preparedStatement.executeQuery();
+		// 자신의 트윗 가져오기
+		String selectUserTweetsQuery = "SELECT * FROM Tweet WHERE WriterID=?";
+		try {
+			PreparedStatement preparedStatement = con.prepareStatement(selectUserTweetsQuery);
+			preparedStatement.setString(1, userID);
+			ResultSet resultSet = preparedStatement.executeQuery();
 
-	        while (resultSet.next()) {
-	            String tweetID = resultSet.getString("TweetID");
-	            String content = resultSet.getString("Content");
-	            String WriterID = resultSet.getString("WriterID");
-	            String timestamp = resultSet.getString("Timestamp");
-	            tweetsMap.put(timestamp, "TweetID: " + tweetID + ", WriterID: "+WriterID + ", Content: " + content + ", Timestamp: " + timestamp);
-	        }
-	    } catch (SQLException e) {
-	        e.printStackTrace();
-	        System.err.println("자신의 트윗을 가져오는 중 오류가 발생했습니다.");
-	        tweetsMap.put("-1", "자신의 트윗을 가져오는 중 오류가 발생했습니다.");
-	        return tweetsMap;
-	    }
+			while (resultSet.next()) {
+				String tweetID = resultSet.getString("TweetID");
+				String content = resultSet.getString("Content");
+				String WriterID = resultSet.getString("WriterID");
+				String timestamp = resultSet.getString("Timestamp");
+				tweetsMap.put(timestamp, "TweetID: " + tweetID + ", WriterID: " + WriterID + ", Content: " + content
+						+ ", Timestamp: " + timestamp);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.err.println("자신의 트윗을 가져오는 중 오류가 발생했습니다.");
+			tweetsMap.put("-1", "자신의 트윗을 가져오는 중 오류가 발생했습니다.");
+			return tweetsMap;
+		}
 
-	    // 팔로우한 사용자들의 트윗 가져오기
-	    String selectFollowingTweetsQuery = "SELECT * FROM Tweet " +
-	            "JOIN Following ON Tweet.WriterID = Following.FollowerID " +
-	            "WHERE Following.UserID = ?";
-	    try {
-	        PreparedStatement preparedStatement = con.prepareStatement(selectFollowingTweetsQuery);
-	        preparedStatement.setString(1, userID);
-	        ResultSet resultSet = preparedStatement.executeQuery();
+		// 팔로우한 사용자들의 트윗 가져오기
+		String selectFollowingTweetsQuery = "SELECT * FROM Tweet "
+				+ "JOIN Following ON Tweet.WriterID = Following.FollowerID " + "WHERE Following.UserID = ?";
+		try {
+			PreparedStatement preparedStatement = con.prepareStatement(selectFollowingTweetsQuery);
+			preparedStatement.setString(1, userID);
+			ResultSet resultSet = preparedStatement.executeQuery();
 
-	        while (resultSet.next()) {
-	            String tweetID = resultSet.getString("TweetID");
-	            String content = resultSet.getString("Content");
-	            String WriterID = resultSet.getString("WriterID");
-	            String timestamp = resultSet.getString("Timestamp");
-	            tweetsMap.put(timestamp, "TweetID: " + tweetID +", WriterID: "+WriterID+", Content: " + content + ", Timestamp: " + timestamp);
-	        }
-	    } catch (SQLException e) {
-	        e.printStackTrace();
-	        System.err.println("팔로우한 사용자들의 트윗을 가져오는 중 오류가 발생했습니다.");
-	        tweetsMap.put("0", "팔로우한 사용자들의 트윗을 가져오는 중 오류가 발생했습니다.");
-	        return tweetsMap;
-	    }
+			while (resultSet.next()) {
+				String tweetID = resultSet.getString("TweetID");
+				String content = resultSet.getString("Content");
+				String WriterID = resultSet.getString("WriterID");
+				String timestamp = resultSet.getString("Timestamp");
+				tweetsMap.put(timestamp, "TweetID: " + tweetID + ", WriterID: " + WriterID + ", Content: " + content
+						+ ", Timestamp: " + timestamp);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.err.println("팔로우한 사용자들의 트윗을 가져오는 중 오류가 발생했습니다.");
+			tweetsMap.put("0", "팔로우한 사용자들의 트윗을 가져오는 중 오류가 발생했습니다.");
+			return tweetsMap;
+		}
 
-	    // 최신순으로 출력
-	    System.out.println(userID + "님의 트윗과 팔로우한 사용자들의 트윗 (최신순):");
-	    for (String tweet : tweetsMap.descendingMap().values()) {
-	        System.out.println(tweet);
-	        displayCommentsForTweet(getTweetIDFromTweetString(tweet));
-	    }	
-	    return tweetsMap;
+		// 최신순으로 출력
+		System.out.println(userID + "님의 트윗과 팔로우한 사용자들의 트윗 (최신순):");
+		for (String tweet : tweetsMap.descendingMap().values()) {
+			System.out.println(tweet);
+			displayCommentsForTweet(getTweetIDFromTweetString(tweet));
+		}
+		return tweetsMap;
 	}
-	
-	
+
 	public static void Connection() {
 		con = null;
 		try {
@@ -450,13 +455,13 @@ public class Twitter {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static void main(String[] args) {
 		Connection();
 //		// SignUP
-//		signUp("202235041", "박건우2", "yourkik@gachon.ac.kr", "12345");
-//		signUp("202235042", "ex3", "ex3@gachon.ac.kr", "12345");
-//		signUp("202235043", "ex4", "ex4@gachon.ac.kr", "12345");
+		signUp("202235041", "박건우2", "yourkik@gachon.ac.kr", "12345");
+		signUp("202235042", "ex3", "ex3@gachon.ac.kr", "12345");
+		signUp("202235043", "ex4", "ex4@gachon.ac.kr", "12345");
 //		
 //		//login
 //		login("202235040","12345");
@@ -483,6 +488,6 @@ public class Twitter {
 //		
 //		//tweet("202235041","Hello 202235040!");
 //		displayUserAndFollowingTweets("202235040");
-		
+
 	}
 }

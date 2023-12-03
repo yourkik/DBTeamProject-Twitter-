@@ -326,7 +326,7 @@ public class SimpleTwitterApp extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String tweetContent = tweetField.getText();
-				postTweet(tweetContent);
+				//postTweet(tweetContent);
 			}
 		});
 	}
@@ -374,6 +374,7 @@ public class SimpleTwitterApp extends JFrame {
 			}
 			Twitter.tweet(loginUserId, tweetContent);
 			JOptionPane.showMessageDialog(this, "트윗이 게시되었습니다.", "Success", JOptionPane.INFORMATION_MESSAGE);
+			displayUserFeed(loginUserId);
 		}, new String[] { "", "Write for Tweet:" }, new JComponent[] { new JPanel(), tweetContentField });
 	}
 
@@ -406,61 +407,8 @@ public class SimpleTwitterApp extends JFrame {
 				new JComponent[] { currentPasswordField, newPasswordField, confirmPasswordField });
 	}
 
-	private void postTweet(String tweetContent) {
-		try {
-			if (!isLoggedIn) {
-				JOptionPane.showMessageDialog(this, "로그인 후에 트윗할 수 있습니다.", "로그인 필요", JOptionPane.WARNING_MESSAGE);
-				return;
-			}
-			System.out.println(tweetContent);
-			String currentUser = usernameField.getText();
-			String tweetId = generateTweetId();
-			// TweetID 중복 확인
-			while (isTweetIdDuplicate(tweetId)) {
-				tweetId = generateTweetId();
-			}
-			String timestamp = new java.text.SimpleDateFormat("yyyy.MM.dd.HH:mm").format(new java.util.Date());
-			String query = "INSERT INTO Tweet (TweetID, WriterID, Content, Timestamp) VALUES (?, ?, ?, ?)";
-			try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-				preparedStatement.setString(1, tweetId);
-				preparedStatement.setString(2, currentUser);
-				preparedStatement.setString(3, tweetContent);
-				preparedStatement.setString(4, timestamp);
-				preparedStatement.executeUpdate();
-			}
-
-			query = "INSERT INTO Timeline (UserID, timestamp, TweetID) VALUES (?, ?, ?)";
-			try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-				preparedStatement.setString(1, currentUser);
-				preparedStatement.setString(2, timestamp);
-				preparedStatement.setString(3, tweetId);
-				preparedStatement.executeUpdate();
-			}
-
-			JOptionPane.showMessageDialog(this, "Tweet posted successfully.", "Success",
-					JOptionPane.INFORMATION_MESSAGE);
-
-			// 트윗이 성공적으로 게시되면 직접 feedArea를 업데이트합니다.
-			displayUserFeed(currentUser);
-		} catch (SQLException e) {
-			e.printStackTrace();
-			JOptionPane.showMessageDialog(this, "Error posting tweet.", "Error", JOptionPane.ERROR_MESSAGE);
-		}
-	}
-
 	private String generateTweetId() {
 		return String.valueOf(System.currentTimeMillis());
-	}
-
-	// 트윗 id 중복 확인
-	private boolean isTweetIdDuplicate(String tweetId) throws SQLException {
-		String query = "SELECT * FROM Tweet WHERE TweetID = ?";
-		try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-			preparedStatement.setString(1, tweetId);
-			try (ResultSet resultSet = preparedStatement.executeQuery()) {
-				return resultSet.next();
-			}
-		}
 	}
 
 	// 2023.11.29 박건우 추가
@@ -556,6 +504,8 @@ public class SimpleTwitterApp extends JFrame {
     	commentDialog.setSize(400, 200);
     	commentDialog.setLocationRelativeTo(this);
     	commentDialog.setVisible(true);
+    	
+    	displayUserFeed(loginUserId);
 	}
 
 	// 팔로잉 목록 보기
