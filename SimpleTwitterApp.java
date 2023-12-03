@@ -1,3 +1,5 @@
+package Twiiter;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -223,26 +225,9 @@ public class SimpleTwitterApp extends JFrame {
 				openCommentDialog();
 			}
 		});
-		
-		//Article버튼 추가
-		JButton articleButton = new JButton("Article");
-		setButtonSize(articleButton);
-		articleButton.addActionListener(new ActionListener() {
-		    @Override
-		    public void actionPerformed(ActionEvent e) {
-		        // Article 버튼 클릭 시 동작하는 로직 추가
-		        openArticleDialog();
-		    }
-		});
-
 		feedLeftPanel.add(commentButton);
 		commentButton.setBackground(new Color(255, 255, 255));
 		commentButton.setForeground(Color.BLUE);
-
-		//article버튼 panel에 추가
-		feedLeftPanel.add(articleButton);
-		articleButton.setBackground(new Color(255, 255, 255));
-		articleButton.setForeground(Color.BLUE);
 
 		// 전체 레이아웃 구성
 		JPanel mainPanel = new JPanel();
@@ -510,8 +495,6 @@ public class SimpleTwitterApp extends JFrame {
         		}
     	});
 
-    	//article 다이얼로그 열기
-    	
     	//다이얼로그에 컴포넌트 추가
     	commentDialog.add(new JLabel("User ID:"));
     	commentDialog.add(userSelector);
@@ -607,57 +590,6 @@ public class SimpleTwitterApp extends JFrame {
 			return;
 		}
 	}
-	// Article 다이얼로그 열기
-	private void openArticleDialog() {
-	    // 다이얼로그 생성 및 설정
-	    JDialog articleDialog = new JDialog(this, "Article", true);
-	    articleDialog.setLayout(new GridLayout(3, 2));
-
-	    // 사용자 선택을 위한 JComboBox 생성 및 설정
-	    JComboBox<String> userSelector = new JComboBox<>();
-
-	    for (String user : Twitter.populateUserSelector()) {
-	        userSelector.addItem(user);
-	    }
-
-	    // Article 내용을 입력할 텍스트 필드 추가
-	    JTextField articleContentField = new JTextField(30);
-
-	    // Article 게시 버튼 추가
-	    JButton postArticleButton = new JButton("Post Article");
-	    postArticleButton.addActionListener(new ActionListener() {
-	        @Override
-	        public void actionPerformed(ActionEvent e) {
-	            // Article 작성 로직
-	            String selectedUserID = userSelector.getSelectedItem().toString();
-	            String articleContent = articleContentField.getText();
-
-	            // Article를 데이터베이스에 저장하고 유효성 검사
-	            if (!selectedUserID.isEmpty() && !articleContent.isEmpty()) {
-	                // Example: Replace with the actual logic for posting an article
-	                // Twitter.postArticle(selectedUserID, articleContent);
-	                JOptionPane.showMessageDialog(articleDialog, "Article을 작성하였습니다.", "Success", JOptionPane.INFORMATION_MESSAGE);
-	                articleDialog.dispose();
-	            } else {
-	                JOptionPane.showMessageDialog(articleDialog, "User와 Article 내용을 입력하세요.", "오류", JOptionPane.ERROR_MESSAGE);
-	            }
-	        }
-	    });
-
-	    // 다이얼로그에 컴포넌트 추가
-	    articleDialog.add(new JLabel("User ID:"));
-	    articleDialog.add(userSelector);
-	    articleDialog.add(new JLabel("Article Content:"));
-	    articleDialog.add(articleContentField);
-	    articleDialog.add(new JLabel(""));
-	    articleDialog.add(postArticleButton);
-
-	    // 다이얼로그 속성 설정 및 표시
-	    articleDialog.setSize(400, 200);
-	    articleDialog.setLocationRelativeTo(this);
-	    articleDialog.setVisible(true);
-	}
-
 
 	// 버튼 크기 설정
 	private void setButtonSize(JButton button) {
