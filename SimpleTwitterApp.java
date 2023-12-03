@@ -245,10 +245,6 @@ public class SimpleTwitterApp extends JFrame {
         feedLeftPanel.add(boardButton);
         boardButton.setBackground(new Color(255, 255, 255));
         boardButton.setForeground(Color.BLUE);
-		feedLeftPanel.add(commentButton);
-		commentButton.setBackground(new Color(255, 255, 255));
-		commentButton.setForeground(Color.BLUE);
-
 
 		// 전체 레이아웃 구성
 		JPanel mainPanel = new JPanel();
