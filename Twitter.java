@@ -162,7 +162,7 @@ public class Twitter {
 		}
 	}
 
-	public static void tweet(String userID, String content) {
+	public static void tweet(String WriterID, String content) {
     		String insertTweetQuery = "INSERT INTO Tweet (TweetID, WriterID, Content, Timestamp) VALUES (?, ?, ?, ?)";
     		try {
     		  	PreparedStatement preparedStatement = con.prepareStatement(insertTweetQuery);
@@ -170,7 +170,7 @@ public class Twitter {
 			tweetID = tweetID.replaceAll("-", "").substring(0, 20);
        			String timestamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date()); // Get the current timestamp
        	 		preparedStatement.setString(1, tweetID);
-        		preparedStatement.setString(2, userID);
+        		preparedStatement.setString(2, WriterID);
         		preparedStatement.setString(3, content);
         		preparedStatement.setString(4, timestamp);
         		preparedStatement.executeUpdate();

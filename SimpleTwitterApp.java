@@ -564,8 +564,6 @@ public class SimpleTwitterApp extends JFrame {
 
 	}
 	
-	
-
 	// 팔로잉 목록 보기
 	private void displayFollowingList() {
 		ArrayList<String> List = twitter.FollowingList(loginUserId);
@@ -592,17 +590,7 @@ public class SimpleTwitterApp extends JFrame {
 	    	private void postComment(String userID, String tweetID, String commentContent) {
 	        	try {
 	            	//comment 테이블에 댓글 삽입 로직
-	            	String generatedCommentID = UUID.randomUUID().toString(); //unique comment ID
-
-	            	String query = "INSERT INTO Comment (CommentID, TweetID, UserID, Content, Timestamp) VALUES (?, ?, ?, ?, NOW())";
-	            	try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-	                	preparedStatement.setString(1, generatedCommentID);
-	                	preparedStatement.setString(2, tweetID);
-	                	preparedStatement.setString(3, userID);
-	                	preparedStatement.setString(4, commentContent);
-
-	                	preparedStatement.executeUpdate();
-	                	//comment 작성 성공 메시지 표시
+	        
 	                	JOptionPane.showMessageDialog(this, "comment가 등록되었습니다.", "성공", JOptionPane.INFORMATION_MESSAGE);
 	            	}
 	        	} catch (SQLException e) {
