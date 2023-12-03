@@ -28,7 +28,7 @@ import java.util.TreeMap;
 public class Twitter {
 	private static Connection con;
 	
-	//중복된 ID인지 확인하는 함수
+	//중복된 UserID인지 확인하는 함수
 	public static boolean isUserIDExists(String userID) {
 	    String checkUserQuery = "SELECT UserID FROM User WHERE UserID=?";
 	    try {
@@ -42,6 +42,37 @@ public class Twitter {
 	        return false;
 	    }
 	}
+	
+	//중복된 TweetID인지 확인하는 함수
+	public static boolean isTweetIDExists(String TweetID) {
+	    String checkTweetQuery = "SELECT TweetID FROM Tweet WHERE TweetID=?";
+	    try {
+	        PreparedStatement preparedStatement = con.prepareStatement(checkTweetQuery);
+	        preparedStatement.setString(1, TweetID);
+	        ResultSet resultSet = preparedStatement.executeQuery();
+	        return resultSet.next(); // true면 중복된 ID가 존재함
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        System.err.println("Tweet ID 확인 중 오류가 발생했습니다.");
+	        return false;
+	    }
+	}
+
+	//중복된 CommentID인지 확인하는 함수
+	public static boolean isCommmentIDExists(String CommentID) {
+	    String checkCommentQuery = "SELECT CommentID FROM Comment WHERE CommentID=?";
+	    try {
+	        PreparedStatement preparedStatement = con.prepareStatement(checkCommentQuery);
+	        preparedStatement.setString(1, CommentID);
+	        ResultSet resultSet = preparedStatement.executeQuery();
+	        return resultSet.next(); // true면 중복된 ID가 존재함
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        System.err.println("Comment ID 확인 중 오류가 발생했습니다.");
+	        return false;
+	    }
+	}
+		
 	
 	public static void signUp(String userID, String name, String email, String password) {
 		if (isUserIDExists(userID)) {
