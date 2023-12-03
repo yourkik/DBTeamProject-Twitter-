@@ -369,7 +369,8 @@ public class SimpleTwitterApp extends JFrame {
 				JOptionPane.showMessageDialog(null, "Tweet comment is empty.", "error", JOptionPane.WARNING_MESSAGE);
 				return;
 			}
-			postTweet(tweetContent);
+			Twitter.tweet(loginUserId, tweetContent);
+			JOptionPane.showMessageDialog(this, "트윗이 게시되었습니다.", "Success", JOptionPane.INFORMATION_MESSAGE);
 		}, new String[] { "", "Write for Tweet:" }, new JComponent[] { new JPanel(), tweetContentField });
 	}
 
@@ -697,7 +698,7 @@ public class SimpleTwitterApp extends JFrame {
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(() -> {
 			SimpleTwitterApp app = new SimpleTwitterApp();
-			app.setSize(600, 400);
+			app.setSize(600, 475);
 			app.setTitle("Twitter");
 			app.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 			app.setVisible(true);
