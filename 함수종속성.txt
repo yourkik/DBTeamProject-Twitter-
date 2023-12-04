@@ -1,0 +1,15 @@
+1. User Table
+UserID -> Name, Email, Password
+
+2. Tweet Table
+TweetID -> WriterID, Content, Timestamp
+WriterID -> UserID (via Foreign Key)
+
+3. Follower Table
+(UserID, FollowingID) -> Timestamp
+
+4. Following Table
+(UserID, FollowerID) -> Timestamp
+
+5. Comment Table
+CommentID -> TweetID, WriterID, Content, Timestamp
