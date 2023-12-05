@@ -163,6 +163,10 @@ public class SimpleTwitterApp extends JFrame {
 		followingButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				if (!isLoggedIn) {
+					JOptionPane.showMessageDialog(null, "현재 로그인돼있지 않습니다.", "error", JOptionPane.WARNING_MESSAGE);
+					return;
+				}
 				// 팔로잉 목록 보기 로직 추가
 				displayFollowingList();
 				// 팔로우할 수 있는 user검색 후 팔로우 기능
@@ -405,6 +409,10 @@ public class SimpleTwitterApp extends JFrame {
 	// 2023.11.29 정은섭 비밀번호 변경 수정
 	// Change Passaword창 열기
 	private void openChangePasswordDialog() {
+		if (!isLoggedIn) {
+			JOptionPane.showMessageDialog(null, "현재 로그인돼있지 않습니다.", "error", JOptionPane.WARNING_MESSAGE);
+			return;
+		}
 		JPasswordField currentPasswordField = new JPasswordField(10);
 		JPasswordField newPasswordField = new JPasswordField(10);
 		JPasswordField confirmPasswordField = new JPasswordField(10);
@@ -609,6 +617,7 @@ public class SimpleTwitterApp extends JFrame {
 	
 	// 팔로우 할 수 있는 user검색 후 팔로우 기능
 	private void displayFollowableUsers() {
+		
 		ArrayList<String> List = twitter.AllUserList(loginUserId);
 
 		JComboBox<String> followableUsersComboBox = new JComboBox<>();
@@ -626,6 +635,7 @@ public class SimpleTwitterApp extends JFrame {
 
 	// 팔로워 목록 보기
 	private void displayFollowersList() {
+
 		ArrayList<String> List = twitter.FollowerList(loginUserId);
 
 		StringBuilder followerList = new StringBuilder("Follower List:\n");
